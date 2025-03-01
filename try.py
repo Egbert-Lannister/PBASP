@@ -1,61 +1,49 @@
-class BitMap:
-    def __init__(self, size):
-        """初始化位图，指定位图的大小"""
-        self.size = size
-        # 计算需要多少个整数来存储所有位
-        self.bits_per_int = 32  # 假设每个整数是32位
-        self.int_size = (size + self.bits_per_int - 1) // self.bits_per_int
-        # 初始化为0
-        self.arr = [0] * self.int_size
+from BitMap import BitMap
+import sqlite3
 
-    def get_index(self, bit_index):
-        """获取存储该位的整数索引和位偏移"""
-        if bit_index >= self.size or bit_index < 0:
-            raise IndexError("位索引超出范围")
-        integer_index = bit_index // self.bits_per_int
-        bit_offset = bit_index % self.bits_per_int
-        return integer_index, bit_offset
+# 读取数据库数据
+db_path = 'data_object_2000_keyword_100.db'
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
 
-    def set_bit(self, bit_index):
-        """设置指定位为1"""
-        integer_index, bit_offset = self.get_index(bit_index)
-        self.arr[integer_index] |= (1 << bit_offset)
+# 查询数据
+cursor.execute("SELECT * FROM business_table")
+rows = cursor.fetchall()
 
-    def clear_bit(self, bit_index):
-        """清除指定位（设置为0）"""
-        integer_index, bit_offset = self.get_index(bit_index)
-        self.arr[integer_index] &= ~(1 << bit_offset)
+# 分离 business_id 和 keywords
+business_ids = [row[0] for row in rows]
+keywords_list = []  # 关键字列表
 
-    def check_bit(self, bit_index):
-        """检查指定位是否为1"""
-        integer_index, bit_offset = self.get_index(bit_index)
-        return (self.arr[integer_index] & (1 << bit_offset)) != 0
 
-    def __str__(self):
-        """返回位图的字符串表示"""
-        result = []
-        for i in range(self.size):
-            result.append(str(int(self.check_bit(i))))
-        return "".join(result[::-1])  # 反转以匹配二进制的高位在前
+for row in rows:
+    row_keyword_list = row[3].split(', ') if row[3] else []
+    for keyword in row_keyword_list:
+        keywords_list.append(keyword)
 
-# 示例使用
-if __name__ == "__main__":
-    # 创建一个大小为10的位图
-    bitmap = BitMap(10)
+print(len(keywords_list))
 
-    # 设置第5位为1
-    bitmap.set_bit(5)
-    print(f"位图状态: {bitmap}")  # 输出: 0000001000
+# 建立关键字对象索引
 
-    # 检查第5位是否为1
-    print(f"第5位是否为1: {bitmap.check_bit(5)}")  # 输出: True
+# 关键字对象索引字典
+keyword_index = {}
 
-    # 清除第5位
-    bitmap.clear_bit(5)
-    print(f"位图状态: {bitmap}")  # 输出: 0000000000
+print(keywords_list)
 
-    # 尝试设置一个无效位
-    try:
-        bitmap.set_bit(15)
-    except IndexError as e:
-        print(e)  # 输出: 位索引超出范围
+
+for keyword in keywords_list:
+    keyword_index[keyword] = BitMap(2000)
+
+
+# 遍历每一行数据
+for i, row in enumerate(rows):
+    business_id = row[0]
+    keywords = row[3].split(',') if row[3] else []
+    print(business_id, keywords)
+
+    for keyword in keywords:
+        # 找到相应关键字之后，将该关键字位图的对象相应位置设置为 1
+        keyword_index[keyword].set_bit(i)
+
+
+# 关闭数据库连接
+conn.close()

@@ -1,3 +1,4 @@
-kagglehub~=0.3.9
-tqdm~=4.66.5
-numpy~=1.26.4
+kagglehub
+tqdm
+numpy
+numpy-hilbert-curve
