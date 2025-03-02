@@ -4,11 +4,7 @@ from BitMap import BitMap
 import sqlite3
 
 # 读取数据库数据
-
-# 数据库路径
 db_path = 'data_object_2000_keyword_100.db'
-
-# 连接到数据库
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
@@ -16,78 +12,56 @@ cursor = conn.cursor()
 cursor.execute("SELECT * FROM business_table")
 rows = cursor.fetchall()
 
+
 # 分离 business_id 和 keywords
 business_ids = [row[0] for row in rows]
-keywords_list = [set(row[3].split(', ')) for row in rows]
-
-# 建立关键字对象索引
-
-keyword_index = {}
-
-for row in rows:
-    keyword_index[row[3]] = BitMap(2000)
+keywords_list = []  # 关键字列表
 
 
 for row in rows:
-
-    # 关键字进组
-    keywords = row[3].split(',')
-    for keyword in keywords:
+    row_keyword_list = row[3].split(', ') if row[3] else []
+    print(row_keyword_list)
+    for keyword in row_keyword_list:
+        keyword = keyword.strip()
+        # 去重
         if keyword in keywords_list:
-            index = keywords_list.index(keyword)
-            # 找到相应关键字之后，将该关键字位图的对象相应位置设置为 1
-            keyword_index[keyword].set_bit(row)
-
-
+            continue
         else:
             keywords_list.append(keyword)
 
+print(len(keywords_list))
+
+# 建立关键字对象索引
+
+# 关键字对象索引字典
+keyword_index = {}
+
+print(keywords_list)
 
 
-    print(f"business_id: {row[0]}, keywords: {row[3]}")
+for keyword in keywords_list:
+    keyword_index[keyword] = BitMap(2000)
 
 
+# 遍历每一行数据
+for i, row in enumerate(rows):
+    # 位图的索引顺序？？？
+    print(i)
+    business_id = row[0]
+    row_keyword_list = row[3].split(', ') if row[3] else []
 
+    # 是不是可以考虑把 business_id 也存进去
+    print(business_id, row_keyword_list)
 
-bm = BitMap(10)
-
-# 设置某些位
-bm.set_bit(0)
-bm.set_bit(3)
-bm.set_bit(7)
-
-# 清除某些位
-bm.clear_bit(3)
-
-# 检查某一位是否为1
-print("位 0 是否为1?", bm.check_bit(0))  # True
-print("位 3 是否为1?", bm.check_bit(3))  # False
-print("位 7 是否为1?", bm.check_bit(7))  # True
-
-# 输出位图的二进制表示
-print("位图的二进制表示:", bm)  # 输出类似 "00000001 00000100 00000000 ..."
-
-# 创建另一个位图
-bm2 = BitMap(10)
-bm2.set_bit(1)
-bm2.set_bit(5)
-bm2.set_bit(7)
-
-# 执行逻辑运算
-bm_and = bm.and_operation(bm2)  # AND 运算
-bm_or = bm.or_operation(bm2)    # OR 运算
-bm_xor = bm.xor_operation(bm2)  # XOR 运算
-
-# 输出结果
-print("AND 运算结果:", bm_and)
-print("OR 运算结果:", bm_or)
-print("XOR 运算结果:", bm_xor)
-
-
-
+    for keyword in row_keyword_list:
+        keyword = keyword.strip()
+        # 找到相应关键字之后，将该关键字位图的对象相应位置设置为 1
+        keyword_index[keyword].set_bit(i)
 
 
 # 建立位置对象索引
+
+position_index = {}
 
 def lat_lon_to_hilbert_to_64bit_binary(latitude, longitude):
     """
@@ -121,11 +95,13 @@ def lat_lon_to_hilbert_to_64bit_binary(latitude, longitude):
     hilbert_integer = encode(points, n_dimensions, n_bits)
     print("希尔伯特整数:", hilbert_integer)
 
+    """
     # 解码回地理坐标（可选）
     decoded_points = decode(hilbert_integer, n_dimensions, n_bits)
     decoded_latitude = (decoded_points[0][0] / max_value) * 180 - 90
     decoded_longitude = (decoded_points[0][1] / max_value) * 360 - 180
     print("解码后的地理坐标:", (decoded_latitude, decoded_longitude))
+    """
 
     # 将希尔伯特整数转化为64位的二进制数
     binary_str = bin(hilbert_integer)[2:]  # 去掉前缀 '0b'
@@ -133,9 +109,58 @@ def lat_lon_to_hilbert_to_64bit_binary(latitude, longitude):
     binary_64bit = binary_str[-64:].zfill(64)
     return binary_64bit
 
+def get_prefix_codes(bit_str):
+    """
+    根据输入的二进制字符串生成前缀码列表。
+
+    例如，对于 "011001" 会生成：
+      011001
+      01100*
+      0110**
+      011***
+      01****
+      0*****
+
+    参数:
+    - bit_str: 输入的二进制字符串
+
+    返回:
+    - 前缀码列表，每个元素是一个字符串
+    """
+    prefix_codes = []
+    n = len(bit_str)
+    for i in range(n):
+        # 保留前面的 (n-i) 位，后面补上 i 个 '*' 作为通配符
+        prefix = bit_str[:n - i]
+        suffix = '*' * i
+        prefix_codes.append(prefix + suffix)
+    return prefix_codes
+
+# 遍历每一行数据
+prefix_codes_list = []
+
+# 字典建好键值
+for row in rows:
+    latitude = row[1]
+    longitude = row[2]
+    print(latitude, longitude)
+    prefix_codes = get_prefix_codes(lat_lon_to_hilbert_to_64bit_binary(latitude, longitude))
+    for prefix_code in prefix_codes:
+        if prefix_code in prefix_codes_list:
+            continue
+        else:
+            prefix_codes_list.append(prefix_code)
+            position_index[prefix_code] = BitMap(2000)
+
+# 遍历每一行数据
+for i, row in enumerate(rows):
+    latitude = row[1]
+    longitude = row[2]
+    prefix_codes = get_prefix_codes(lat_lon_to_hilbert_to_64bit_binary(latitude, longitude))
+    for prefix_code in prefix_codes:
+        position_index[prefix_code].set_bit(i)
 
 
-
-
-
+# 关闭数据库连接
+conn.close()
 

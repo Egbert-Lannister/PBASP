@@ -34,7 +34,7 @@ class BitMap:
         result = []
         for i in range(self.size):
             result.append(str(int(self.check_bit(i))))
-        return "".join(result[::-1])  # 反转以匹配二进制的高位在前
+        return "".join(result)  # 反转以匹配二进制的高位在前
 
     @staticmethod
     def logical_operation(bitmap1, bitmap2, operator):
@@ -76,3 +76,11 @@ class BitMap:
     def xor_operation(self, other):
         """异或运算"""
         return BitMap.logical_operation(self, other, "XOR")
+
+
+bmp = BitMap(9)
+print(f"初始位图: {bmp}")  # 输出：000000000
+bmp.set_bit(0)
+print(f"设置位 0 后: {bmp}")  # 输出：100000000
+bmp.set_bit(8)
+print(f"设置位 8 后: {bmp}")  # 输出：100000001
