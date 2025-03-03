@@ -78,9 +78,12 @@ class BitMap:
         return BitMap.logical_operation(self, other, "XOR")
 
 
-bmp = BitMap(9)
-print(f"初始位图: {bmp}")  # 输出：000000000
-bmp.set_bit(0)
-print(f"设置位 0 后: {bmp}")  # 输出：100000000
-bmp.set_bit(8)
-print(f"设置位 8 后: {bmp}")  # 输出：100000001
+# --------------------- 示例调用 ---------------------
+if __name__ == "__main__":
+
+    bmp = BitMap(9)
+    print(f"初始位图: {bmp}")  # 输出：000000000
+    bmp.set_bit(0)
+    print(f"设置位 0 后: {bmp}")  # 输出：100000000
+    bmp.set_bit(8)
+    print(f"设置位 8 后: {bmp}")  # 输出：100000001

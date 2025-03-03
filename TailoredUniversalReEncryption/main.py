@@ -2,7 +2,6 @@ import random
 import math
 
 
-
 # ---------- Paillier相关函数 ----------
 def L(u, n):
     return (u - 1) // n
