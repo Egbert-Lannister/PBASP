@@ -140,3 +140,32 @@ class IndexBuilder:
                 self.position_index[code].set_bit(i)
 
         return self.position_index
+
+    def index_or_separation(self):
+        """
+        通过调用 BitMap 类中的 bitmap_or_separation 函数，
+        遍历关键字索引字典和位置索引字典中的每个 BitMap，
+        将每个 BitMap 随机分成两个 BitMap，
+        分别生成两个新的字典：
+          - keyword_index_1 和 keyword_index_2
+          - position_index_1 和 position_index_2
+
+        返回：
+          ((keyword_index_1, keyword_index_2), (position_index_1, position_index_2))
+        """
+        keyword_index_1 = {}
+        keyword_index_2 = {}
+        for keyword, bitmap in self.keyword_index.items():
+            # 调用 BitMap 类中的 bitmap_or_separation 函数进行分离
+            bmp1, bmp2 = bitmap.bitmap_or_separation()
+            keyword_index_1[keyword] = bmp1
+            keyword_index_2[keyword] = bmp2
+
+        position_index_1 = {}
+        position_index_2 = {}
+        for code, bitmap in self.position_index.items():
+            bmp1, bmp2 = bitmap.bitmap_or_separation()
+            position_index_1[code] = bmp1
+            position_index_2[code] = bmp2
+
+        return (keyword_index_1, keyword_index_2), (position_index_1, position_index_2)

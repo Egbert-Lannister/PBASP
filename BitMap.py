@@ -1,3 +1,6 @@
+import random
+
+
 class BitMap:
     def __init__(self, size):
         """初始化位图，指定位图的大小"""
@@ -77,6 +80,35 @@ class BitMap:
         """异或运算"""
         return BitMap.logical_operation(self, other, "XOR")
 
+    def bitmap_or_separation(self):
+        """
+        将给定的位图随机分成两个位图，
+        要求两个分离后的位图经过逻辑 OR 运算后能够得到原来的位图。
+
+        思路：
+        - 对于原位图中每一位：
+            - 如果位为 0，则两个子位图该位均为 0；
+            - 如果位为 1，则随机选择以下三种方案之一：
+                1. 只在第一个位图中置 1；
+                2. 只在第二个位图中置 1；
+                3. 两个位图均置 1。
+        """
+        bmp1 = BitMap(self.size)
+        bmp2 = BitMap(self.size)
+        for i in range(self.size):
+            if self.check_bit(i):
+                # 随机选择分配方案
+                choice = random.choice([1, 2, 3])
+                if choice == 1:
+                    bmp1.set_bit(i)
+                elif choice == 2:
+                    bmp2.set_bit(i)
+                else:  # choice == 3
+                    bmp1.set_bit(i)
+                    bmp2.set_bit(i)
+            # 若该位为 0，则 bmp1 与 bmp2 均保持 0，无需处理
+        return bmp1, bmp2
+
 
 # --------------------- 示例调用 ---------------------
 if __name__ == "__main__":
@@ -87,3 +119,12 @@ if __name__ == "__main__":
     print(f"设置位 0 后: {bmp}")  # 输出：100000000
     bmp.set_bit(8)
     print(f"设置位 8 后: {bmp}")  # 输出：100000001
+
+    bmp1, bmp2 = bmp.bitmap_or_separation()
+    print(f"分离后的位图1: {bmp1}")
+    print(f"分离后的位图2: {bmp2}")
+
+    # 检查 OR 运算是否还原原始位图
+    bmp_restored = bmp1.or_operation(bmp2)
+    print(f"OR 之后的位图: {bmp_restored}")
+

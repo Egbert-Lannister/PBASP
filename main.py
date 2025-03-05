@@ -27,6 +27,16 @@ def main():
     print("构建了 {} 个关键字索引".format(len(keyword_index)))
     print("构建了 {} 个位置索引前缀码".format(len(position_index)))
 
+    # 调用 index_or_separation 得到两个分离后的索引字典
+    (keyword_index1, keyword_index2), (position_index1, position_index2) = index_builder.index_or_separation()
+
+    # 示例：打印分离后的关键字索引中某个关键字的位图
+    sample_keyword = list(keyword_index.keys())[0]
+    print("原始关键字 '{}' 的位图: {}".format(sample_keyword, keyword_index[sample_keyword]))
+    print("分离后第一部分: {}".format(keyword_index1[sample_keyword]))
+    print("分离后第二部分: {}".format(keyword_index2[sample_keyword]))
+
+
     # 此处可以进一步调用索引进行查询或其他操作
 
 
