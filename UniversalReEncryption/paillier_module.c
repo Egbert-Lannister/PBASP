@@ -4,12 +4,9 @@
 #include <gmp.h>
 
 // 辅助函数 L(u) = (u-1) // n
-static mpz_t _L(mpz_t u, mpz_t n) {
-    mpz_t result;
-    mpz_init(result);
+static void _L(mpz_t result, mpz_t u, mpz_t n) {
     mpz_sub_ui(u, u, 1);
     mpz_div(result, u, n);
-    return result;
 }
 
 // 判断一个整数 n 是否为素数
@@ -22,7 +19,7 @@ static mpz_t _generate_prime(int bits) {
     mpz_t num;
     mpz_init(num);
     while (1) {
-        mpz_rrandomb(num, gmp_randstate_t, bits);
+        mpz_rrandomb(num, gmp_randstate, bits);
         mpz_setbit(num, bits - 1);
         mpz_setbit(num, 0);
         if (_is_prime(num)) {
@@ -57,13 +54,13 @@ static void _generate_paillier_keys(int bits, mpz_t *public_key, mpz_t *private_
     g = mpz_add_ui(n, 1);
 
     mpz_powm(u, g, lam, n_sq);
-    _L(u, n);
+    _L(u, u, n);
     mpz_invert(mu, u, n);
 
-    public_key[0] = n;
-    public_key[1] = g;
-    private_key[0] = lam;
-    private_key[1] = mu;
+    mpz_set(public_key[0], n);
+    mpz_set(public_key[1], g);
+    mpz_set(private_key[0], lam);
+    mpz_set(private_key[1], mu);
 }
 
 // Paillier 加密
@@ -80,7 +77,7 @@ static mpz_t encrypt(mpz_t m, mpz_t *public_key) {
     mpz_pow_ui(n_sq, n, 2);
 
     while (1) {
-        mpz_urandomm(r, gmp_randstate_t, n);
+        mpz_urandomm(r, gmp_randstate, n);
         if (mpz_gcd(r, n) == 1) {
             break;
         }
@@ -111,7 +108,7 @@ static mpz_t decrypt(mpz_t c, mpz_t *private_key, mpz_t *public_key) {
     mpz_pow_ui(n_sq, n, 2);
 
     mpz_powm(u, c, lam, n_sq);
-    _L(u, n);
+    _L(L_u, u, n);
     mpz_mul(m, L_u, mu);
     mpz_mod(m, m, n);
 
@@ -152,36 +149,36 @@ static struct PyModuleDef pailliermodule = {
     PaillierMethods
 };
 
- 模块初始化
+// 模块初始化
 PyMODINIT_FUNC PyInit_paillier(void) {
     return PyModule_Create(&pailliermodule);
 }
 
-#include<gmp.h>
-#define N 1212
-int test01()
-{
-    mpz_t a,c;
-    mpz_init(a);
-    mpz_init(c);
-
-    mpz_init_set_ui(a, 2);
-    mpz_pow_ui(c, a, N);
-    gmp_printf("2^%d = %Zd\n", N, c);
-
-    mpz_clear(a);
-    mpz_clear(c);
-    return 0;
-}
-
-static struct PyModuleDef pailliermodule = {
-    PyModuleDef_HEAD_INIT,
-    "test01",
-    NULL,
-    -1,
-    NULL
-};
-
-PyMODINIT_FUNC PyInit_paillier(void) {
-    return PyModule_Create(&pailliermodule);
-}
+//#include<gmp.h>
+//#define N 1212
+//int test01()
+//{
+//    mpz_t a,c;
+//    mpz_init(a);
+//    mpz_init(c);
+//
+//    mpz_init_set_ui(a, 2);
+//    mpz_pow_ui(c, a, N);
+//    gmp_printf("2^%d = %Zd\n", N, c);
+//
+//    mpz_clear(a);
+//    mpz_clear(c);
+//    return 0;
+//}
+//
+//static struct PyModuleDef pailliermodule = {
+//    PyModuleDef_HEAD_INIT,
+//    "test01",
+//    NULL,
+//    -1,
+//    NULL
+//};
+//
+//PyMODINIT_FUNC PyInit_paillier(void) {
+//    return PyModule_Create(&pailliermodule);
+//}

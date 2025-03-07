@@ -48,3 +48,31 @@ def main():
     HOST = 'localhost'
     cs2_PORT = 12346
     CLOUD_SERVER_1_ADDRESS = ('localhost', 12345)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, cs2_PORT))
+        s.listen()
+        print(f"CloudServer_2 已启动，监听端口 {cs2_PORT}...")
+        conn, addr = s.accept()
+        with conn:
+            print(f"连接来自 {addr}")
+            data = receive_data(conn)
+            if data:
+                encrypted_keyword_index_2, encrypted_position_index_2, proxy_pseudorandom_do_pri = data
+                print("收到以下数据：")
+                print(f"encrypted_keyword_index_2: {encrypted_keyword_index_2}")
+                print(f"encrypted_position_index_2: {encrypted_position_index_2}")
+                # 在这里存储或处理数据
+
+                send_to_server((encrypted_keyword_index_2, encrypted_position_index_2), CLOUD_SERVER_1_ADDRESS)
+
+                proxy_pseudorandom_cs1_pri, proxy_pseudorandom_cs1_pub = ProxyPseudorandom.generate_keys()
+
+                rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, proxy_pseudorandom_cs1_pub)
+
+
+
+
+
+if __name__ == "__main__":
+    main()

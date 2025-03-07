@@ -1,12 +1,18 @@
 import sqlite3
 import time
+import socket
+import pickle
+import sys
+sys.path.append(r"D:\Python_Script\PBASP\UniversalReEncryption")
+
 
 from tqdm import tqdm
 # from universal_re_encryption import ElGamal, encrypt_bitmap
 
 from IndexBuilder import IndexBuilder
-from encryption import ProxyPseudorandom
-from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
+from encryption import ProxyPseudorandom, UniversalReEncryption
+# from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
+# from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
 
 def read_data(db_path):
     """
@@ -40,11 +46,13 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     encrypted_position_index_2 = {}
 
     # TPF ProxyPseudorandom 代理伪随机加密 密钥生成 (Data Owner端)
-    a_pri, a_pub = ProxyPseudorandom.generate_keys()
+    proxy_pseudorandom_do_pri, proxy_pseudorandom_do_pub = ProxyPseudorandom.generate_keys()
     b_pri, b_pub = ProxyPseudorandom.generate_keys()
 
     # TUR UniversalReEncryption 通用重加密 密钥生成
     ure = UniversalReEncryption(security_param=8)
+    # C++ 加速方法
+    # ure = universal_reencryption.UniversalReEncryption(security_param=8)
     print("公钥:", ure.public_key)
     print("私钥:", ure.private_key)
     print("部分解密密钥: partial_key1 =", ure.partial_key1, ", partial_key2 =", ure.partial_key2)
@@ -103,7 +111,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     # DataOwner 加密消息
     for key, value in tqdm(keyword_index_1.items(), desc="Encrypting the keyword index 1...", total=len(keyword_index_1)):
 
-        cipher_text, capsule = ProxyPseudorandom.encrypt(key, a_pub)
+        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub)
         # print("关键词密文:", cipher_text.hex())
 
         # Capsule 序列化和反序列化测试
@@ -113,12 +121,15 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
 
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(value)
+
+        # print(type(encrypted_ciphertexts))
+        # 加密之后的位图不是BitMap，是列表
 
         encrypted_keyword_index_1[cipher_text] = [capsule, encrypted_ciphertexts]
 
     for key, value in tqdm(keyword_index_2.items(), desc="Encrypting the keyword index 2...", total=len(keyword_index_2)):
 
-        cipher_text, capsule = ProxyPseudorandom.encrypt(key, a_pub)
+        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub)
         # print("关键词密文:", cipher_text.hex())
 
         # Capsule 序列化和反序列化测试
@@ -127,7 +138,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
         capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
 
         # 位图加密
-        encrypted_ciphertexts = ure.encrypt_bitmap(value)
+        encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
         encrypted_keyword_index_2[cipher_text] = [capsule, encrypted_ciphertexts]
 
@@ -144,7 +155,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
 
     for key, value in tqdm(position_index_1.items(), desc="Encrypting the position index 1...", total=len(position_index_1)):
 
-        cipher_text, capsule = ProxyPseudorandom.encrypt(key, a_pub)
+        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub)
         # print("前缀码密文:", cipher_text.hex())
 
         # Capsule 序列化和反序列化测试
@@ -153,13 +164,13 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
         capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
 
         # 位图加密
-        encrypted_ciphertexts = ure.encrypt_bitmap(value)
+        encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
         encrypted_position_index_1[cipher_text] = [capsule, encrypted_ciphertexts]
 
     for key, value in tqdm(position_index_2.items(), desc="Encrypting the position index 2...", total=len(position_index_2)):
 
-        cipher_text, capsule = ProxyPseudorandom.encrypt(key, a_pub)
+        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub)
         # print("前缀码密文:", cipher_text.hex())
 
         # Capsule 序列化和反序列化测试
@@ -168,7 +179,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
         capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
 
         # 位图加密
-        encrypted_ciphertexts = ure.encrypt_bitmap(value)
+        encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
         encrypted_position_index_2[cipher_text] = [capsule, encrypted_ciphertexts]
 
@@ -181,7 +192,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
 
 
 
-    return encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2
+    return encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2, proxy_pseudorandom_do_pub, proxy_pseudorandom_do_pri, ure
 
 def send_to_server(data, server_address):
     """发送数据到指定的服务器"""
@@ -207,23 +218,20 @@ if __name__ == "__main__":
     # 建索引结束
 
     # 开始加密
-    data_encryption(keyword_index_1, keyword_index_2, position_index_1, position_index_2)
+    encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2, proxy_pseudorandom_do_pub, proxy_pseudorandom_do_pri, ure = data_encryption(keyword_index_1, keyword_index_2, position_index_1, position_index_2)
     # 加密结束
 
+    # 传递给服务器
+    # 定义服务器地址
+    HOST = 'localhost'
+    cs1_PORT = 12345
+    cs2_PORT = 12346
+    CLOUD_SERVER_1_ADDRESS = (HOST, cs1_PORT)  # CloudServer_1 的地址
+    CLOUD_SERVER_2_ADDRESS = (HOST, cs2_PORT)  # CloudServer_2 的地址
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # 发送数据到服务器
+    send_to_server((encrypted_keyword_index_1, encrypted_position_index_1, proxy_pseudorandom_do_pri), CLOUD_SERVER_1_ADDRESS)
+    send_to_server((encrypted_keyword_index_2, encrypted_position_index_2, proxy_pseudorandom_do_pri), CLOUD_SERVER_2_ADDRESS)
 
 
 
