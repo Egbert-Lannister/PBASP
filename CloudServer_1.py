@@ -73,3 +73,13 @@ def main():
                 proxy_pseudorandom_cs1_pri, proxy_pseudorandom_cs1_pub = ProxyPseudorandom.generate_keys()
 
                 rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, proxy_pseudorandom_cs1_pub)
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    main()
