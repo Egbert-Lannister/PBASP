@@ -23,9 +23,8 @@ def main():
     keyword_index = index_builder.build_keyword_index()
     position_index = index_builder.build_position_index()
 
-    # 示例：打印构建好的索引信息
-    print("构建了 {} 个关键字索引".format(len(keyword_index)))
-    print("构建了 {} 个位置索引前缀码".format(len(position_index)))
+    # 启动 CloudServer_2
+    server2_process = subprocess.Popen(["python", "CloudServer_2.py"])
 
     # 调用 index_or_separation 得到两个分离后的索引字典
     (keyword_index1, keyword_index2), (position_index1, position_index2) = index_builder.index_or_separation()
