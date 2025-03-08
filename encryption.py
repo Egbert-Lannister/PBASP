@@ -477,8 +477,8 @@ class UniversalReEncryption:
 if __name__ == '__main__':
     # 初始化重加密系统（安全参数仅为8位，示例用，实际应用应远大于此值）
     ure = UniversalReEncryption(security_param=8)
-    print("公钥:", ure.public_key)
-    print("私钥:", ure.private_key)
+    print("公钥:", ure.public_key) # 加密
+    print("私钥:", ure.private_key) # 解密
     print("部分解密密钥: partial_key1 =", ure.partial_key1, ", partial_key2 =", ure.partial_key2)
 
     # 待加密的位图字符串
