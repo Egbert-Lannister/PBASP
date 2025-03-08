@@ -119,6 +119,25 @@ def main():
                 re_encrypted_keyword_index_1_2nd = {}
                 re_encrypted_position_index_1_2nd = {}
 
+                # 生成重加密密钥
+                proxy_pseudorandom_cs1_pri, proxy_pseudorandom_cs1_pub = ProxyPseudorandom.generate_keys()
+                rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, proxy_pseudorandom_cs1_pub)
+
+                # 进行重加密
+                for key, value in tqdm(re_encrypted_keyword_index_1_1st.items(), desc="2nd Re-Encrypting the keyword index 1...", total=len(re_encrypted_keyword_index_1_1st)):
+                    cipher_text = key
+                    capsule = value[0]
+                    encrypted_ciphertexts = value[1]
+
+                    new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+
+                # 进行重加密
+                for key, value in tqdm(re_encrypted_position_index_1_1st.items(), desc="2nd Re-Encrypting the position index 1...", total=len(re_encrypted_position_index_1_1st)):
+                    cipher_text = key
+                    capsule = value[0]
+                    encrypted_ciphertexts = value[1]
+
+                    new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
 
 
