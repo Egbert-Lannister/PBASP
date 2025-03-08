@@ -67,6 +67,14 @@ def main():
 
                 send_to_server((encrypted_keyword_index_1, encrypted_position_index_1), CLOUD_SERVER_2_ADDRESS)
 
+        conn, addr = s.accept()
+        with conn:
+            print(f"连接来自 {addr}")
+            data = receive_data(conn)
+            if data:
+                encrypted_keyword_index_2, encrypted_position_index_2 = data
+                print(f"收到 encrypted_keyword_index_2, 共有 {len(encrypted_keyword_index_2)}条")
+                print(f"收到 encrypted_position_index_2， 共有{len(encrypted_position_index_2)}条")
 
 
 
