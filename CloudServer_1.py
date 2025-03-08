@@ -76,6 +76,9 @@ def main():
                 print(f"收到 encrypted_keyword_index_2, 共有 {len(encrypted_keyword_index_2)}条")
                 print(f"收到 encrypted_position_index_2， 共有{len(encrypted_position_index_2)}条")
 
+                # 重加密字典
+                re_encrypted_keyword_index_2_1st = {}
+                re_encrypted_position_index_2_1st = {}
 
 
                 proxy_pseudorandom_cs1_pri, proxy_pseudorandom_cs1_pub = ProxyPseudorandom.generate_keys()
