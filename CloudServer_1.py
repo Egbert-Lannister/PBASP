@@ -81,7 +81,6 @@ def main():
 
                 # 生成重加密密钥
                 proxy_pseudorandom_cs1_pri, proxy_pseudorandom_cs1_pub = ProxyPseudorandom.generate_keys()
-
                 rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, proxy_pseudorandom_cs1_pub)
 
                 for key, value in tqdm(encrypted_keyword_index_2.items(), desc="1st Re-Encrypting the keyword index 2...", total=len(encrypted_keyword_index_2)):
