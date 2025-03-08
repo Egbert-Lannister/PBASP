@@ -80,7 +80,7 @@ def main():
                 re_encrypted_keyword_index_2_1st = {}
                 re_encrypted_position_index_2_1st = {}
 
-
+                # 生成重加密密钥
                 proxy_pseudorandom_cs1_pri, proxy_pseudorandom_cs1_pub = ProxyPseudorandom.generate_keys()
 
                 rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, proxy_pseudorandom_cs1_pub)
