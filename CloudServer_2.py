@@ -61,8 +61,9 @@ def main():
             if data:
                 encrypted_keyword_index_2, encrypted_position_index_2, proxy_pseudorandom_do_pri = data
                 print("收到以下数据：")
-                print(f"encrypted_keyword_index_2: {encrypted_keyword_index_2}")
-                print(f"encrypted_position_index_2: {encrypted_position_index_2}")
+                print(f"收到 encrypted_keyword_index_2, 共有 {len(encrypted_keyword_index_2)}条")
+                print(f"收到 encrypted_position_index_2， 共有{len(encrypted_position_index_2)}条")
+
                 # 在这里存储或处理数据
 
                 send_to_server((encrypted_keyword_index_2, encrypted_position_index_2), CLOUD_SERVER_1_ADDRESS)
