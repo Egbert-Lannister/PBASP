@@ -1,6 +1,7 @@
 import socket
 import pickle
 
+from tqdm import tqdm
 
 from encryption import ProxyPseudorandom, UniversalReEncryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
