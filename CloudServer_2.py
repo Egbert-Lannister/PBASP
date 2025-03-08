@@ -72,6 +72,73 @@ def main():
 
                 rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, proxy_pseudorandom_cs1_pub)
 
+        conn, addr = s.accept()
+        with conn:
+            print(f"连接来自 {addr}")
+            data = receive_data(conn)
+            if data:
+                encrypted_keyword_index_1, encrypted_position_index_1 = data
+                print(f"收到 encrypted_keyword_index_1, 共有 {len(encrypted_keyword_index_1)}条")
+                print(f"收到 encrypted_position_index_1， 共有{len(encrypted_position_index_1)}条")
+
+                # 重加密字典
+                re_encrypted_keyword_index_1_1st = {}
+                re_encrypted_position_index_1_1st = {}
+
+                # 生成重加密密钥
+                proxy_pseudorandom_cs1_pri, proxy_pseudorandom_cs1_pub = ProxyPseudorandom.generate_keys()
+                rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, proxy_pseudorandom_cs1_pub)
+
+                # 进行重加密
+                for key, value in tqdm(encrypted_keyword_index_1.items(), desc="1st Re-Encrypting the keyword index 1...", total=len(encrypted_keyword_index_1)):
+                    cipher_text = key
+                    capsule = value[0]
+                    encrypted_ciphertexts = value[1]
+
+                    new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+
+                # 进行重加密
+                for key, value in tqdm(encrypted_position_index_1.items(), desc="1st Re-Encrypting the position index 1...", total=len(encrypted_keyword_index_1)):
+                    cipher_text = key
+                    capsule = value[0]
+                    encrypted_ciphertexts = value[1]
+
+                    new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+
+                send_to_server((re_encrypted_keyword_index_1_1st, re_encrypted_position_index_1_1st), CLOUD_SERVER_1_ADDRESS)
+
+        conn, addr = s.accept()
+        with conn:
+            print(f"连接来自 {addr}")
+            data = receive_data(conn)
+            if data:
+                re_encrypted_keyword_index_2_1st, re_encrypted_position_index_2_1st = data
+                print(f"收到 re_encrypted_keyword_index_2_1st, 共有 {len(re_encrypted_keyword_index_2_1st)}条")
+                print(f"收到 re_encrypted_position_index_2_1st， 共有{len(re_encrypted_position_index_2_1st)}条")
+
+                # 重加密字典
+                re_encrypted_keyword_index_2_2nd = {}
+                re_encrypted_position_index_2_2nd = {}
+
+                # 生成重加密密钥
+                proxy_pseudorandom_cs1_pri, proxy_pseudorandom_cs1_pub = ProxyPseudorandom.generate_keys()
+                rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, proxy_pseudorandom_cs1_pub)
+
+                # 进行重加密
+                for key, value in tqdm(re_encrypted_keyword_index_2_1st.items(), desc="2nd Re-Encrypting the keyword index 2...", total=len(re_encrypted_keyword_index_2_1st)):
+                    cipher_text = key
+                    capsule = value[0]
+                    encrypted_ciphertexts = value[1]
+
+                    new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+
+                # 进行重加密
+                for key, value in tqdm(re_encrypted_position_index_2_1st.items(), desc="2nd Re-Encrypting the position index 2...", total=len(re_encrypted_position_index_2_1st)):
+                    cipher_text = key
+                    capsule = value[0]
+                    encrypted_ciphertexts = value[1]
+
+                    new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
 
 
