@@ -10,9 +10,9 @@ from tqdm import tqdm
 # from universal_re_encryption import ElGamal, encrypt_bitmap
 
 from IndexBuilder import IndexBuilder
-from encryption import ProxyPseudorandom, UniversalReEncryption
+from encryption import ProxyPseudorandom #, UniversalReEncryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
-# from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
+from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
 
 def read_data(db_path):
     """
@@ -50,9 +50,9 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     b_pri, b_pub = ProxyPseudorandom.generate_keys()
 
     # TUR UniversalReEncryption 通用重加密 密钥生成
-    ure = UniversalReEncryption(security_param=8)
+    # ure = UniversalReEncryption(security_param=8)
     # C++ 加速方法
-    # ure = universal_reencryption.UniversalReEncryption(security_param=8)
+    ure = universal_reencryption.UniversalReEncryption(security_param=8)
     print("公钥:", ure.public_key)
     print("私钥:", ure.private_key)
     print("部分解密密钥: partial_key1 =", ure.partial_key1, ", partial_key2 =", ure.partial_key2)
@@ -120,7 +120,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
         capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
 
         # 位图加密
-        encrypted_ciphertexts = ure.encrypt_bitmap(value)
+        encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
         # print(type(encrypted_ciphertexts))
         # 加密之后的位图不是BitMap，是列表
