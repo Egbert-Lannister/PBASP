@@ -226,6 +226,7 @@ if __name__ == "__main__":
     HOST = 'localhost'
     cs1_PORT = 12345
     cs2_PORT = 12346
+    client_PORT = 12347
     CLOUD_SERVER_1_ADDRESS = (HOST, cs1_PORT)  # CloudServer_1 的地址
     CLOUD_SERVER_2_ADDRESS = (HOST, cs2_PORT)  # CloudServer_2 的地址
 
