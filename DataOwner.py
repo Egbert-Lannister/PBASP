@@ -14,6 +14,15 @@ from encryption import ProxyPseudorandom #, UniversalReEncryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
 from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
 
+# 定义服务器地址
+HOST = 'localhost'
+cs1_PORT = 12345
+cs2_PORT = 12346
+client_PORT = 12347
+CLOUD_SERVER_1_ADDRESS = (HOST, cs1_PORT)  # CloudServer_1 的地址
+CLOUD_SERVER_2_ADDRESS = (HOST, cs2_PORT)  # CloudServer_2 的地址
+CLIENT_ADDRESS = (HOST, client_PORT)  # Client 客户端的地址
+
 def read_data(db_path):
     """
     从 SQLite 数据库中读取数据，并返回所有行记录
