@@ -258,45 +258,6 @@ class ProxyPseudorandom:
         s = data['s']
         return {'E': E, 'V': V, 's': s}
 
-# --------------------- 示例调用 ---------------------
-if __name__ == "__main__":
-    # 生成 Alice、Bob 和 Charlie 的密钥对
-    a_pri, a_pub = ProxyPseudorandom.generate_keys()
-    b_pri, b_pub = ProxyPseudorandom.generate_keys()
-    c_pri, c_pub = ProxyPseudorandom.generate_keys()
-    message = "Hello, Double Proxy Re-Encryption"
-    print("原始消息:", message)
-
-    # Alice 加密消息
-    cipher_text, capsule = ProxyPseudorandom.encrypt(message, a_pub)
-    print("密文:", cipher_text.hex())
-
-    # 序列化和反序列化测试
-    encoded_capsule = ProxyPseudorandom.encode_capsule(capsule)
-    capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
-
-    # 生成从 Alice 到 Bob 的重加密密钥
-    rk_ab, pubX_ab = ProxyPseudorandom.re_key_gen(a_pri, b_pub)
-    # 第一次重加密（Alice -> Bob）
-    capsule_ab = ProxyPseudorandom.re_encryption(rk_ab, capsule2)
-
-    # 生成从 Bob 到 Charlie 的重加密密钥
-    rk_bc, pubX_bc = ProxyPseudorandom.re_key_gen(b_pri, c_pub)
-    # 第二次重加密（Bob -> Charlie）
-    capsule_bc = ProxyPseudorandom.re_encryption(rk_bc, capsule_ab)
-
-    # Charlie 使用自己的私钥解密
-    plain_text = ProxyPseudorandom.decrypt(c_pri, capsule_bc, pubX_bc, cipher_text)
-    print("Charlie 解密后的消息:", plain_text.decode())
-
-    # Bob 使用自己的私钥解密（可选，验证第一次重加密是否正确）
-    plain_text_bob = ProxyPseudorandom.decrypt(b_pri, capsule_ab, pubX_ab, cipher_text)
-    print("Bob 解密后的消息:", plain_text_bob.decode())
-
-    # Alice 直接解密（可选）
-    plain_text_alice = ProxyPseudorandom.decrypt_on_my_pri(a_pri, capsule, cipher_text)
-    print("Alice 解密后的消息:", plain_text_alice.decode())
-
 
 # --------------------- 示例调用 ---------------------
 if __name__ == "__main__":
