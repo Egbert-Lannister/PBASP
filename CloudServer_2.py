@@ -4,6 +4,7 @@ import pickle
 from tqdm import tqdm
 
 from encryption import ProxyPseudorandom, UniversalReEncryption
+from utils import receive_data, send_to_server, re_encrypt_data
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
 # from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
 import universal_reencryption
