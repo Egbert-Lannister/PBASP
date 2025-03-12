@@ -211,7 +211,33 @@ PYBIND11_MODULE(universal_reencryption, m) {
 
     py::class_<UniversalReEncryption>(m, "UniversalReEncryption")
         .def(py::init<int>(), py::arg("security_param") = 8)
-        // 对于返回 cpp_int 的函数，我们先转换成字符串，然后利用 PyLong_FromString 转成 Python int
+        // 新增 pickle 支持：定义 __getstate__ 和 __setstate__
+        .def(py::pickle(
+            // __getstate__
+            [](const UniversalReEncryption &self) {
+                return py::make_tuple(
+                    self.get_public_key().first,    // n
+                    self.get_public_key().second,   // g
+                    self.get_private_key().first,   // lam
+                    self.get_private_key().second,  // mu
+                    self.get_partial_key1(),        // partial_key1
+                    self.get_partial_key2()         // partial_key2
+                );
+            },
+            // __setstate__
+            [](py::tuple t) {
+                if (t.size() != 6)
+                    throw std::runtime_error("Invalid state!");
+                return UniversalReEncryption(
+                    t[0].cast<std::string>(),  // n
+                    t[1].cast<std::string>(),  // g
+                    t[2].cast<std::string>(),  // lam
+                    t[3].cast<std::string>(),  // mu
+                    t[4].cast<std::string>(),  // partial_key1
+                    t[5].cast<std::string>()   // partial_key2
+                );
+            }
+        ))
         .def("encrypt", [](UniversalReEncryption &ure, const py::int_ &m_val) {
             // 将传入的 py::int_ 转为字符串，再构造 cpp_int
             std::string m_str = py::str(m_val);
