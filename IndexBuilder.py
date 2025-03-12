@@ -19,6 +19,16 @@ class IndexBuilder:
         self.keyword_index = {}  # 关键字索引字典，键为关键字，值为 BitMap 对象
         self.position_index = {}  # 位置索引字典，键为前缀码，值为 BitMap 对象
 
+    def build_bitmap_map_2_object(self):
+
+        bitmap_map_2_object_map = []
+        for row in self.rows:
+            business_id = row[0]
+            business_id = business_id.strip()
+            bitmap_map_2_object_map.append(business_id)
+
+        return bitmap_map_2_object_map
+
     def build_keyword_index(self):
         """
         构建关键字索引：
