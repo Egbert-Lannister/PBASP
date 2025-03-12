@@ -305,6 +305,17 @@ class UniversalReEncryption:
         # 分割私钥，要求 pdk1 * pdk2 = lam，示例中简单设定 pdk1=2
         self.partial_key1, self.partial_key2 = self._generate_partial_keys()
 
+    def __getstate__(self):
+        # 返回一个可序列化的状态字典，排除不可序列化的成员
+        state = self.__dict__.copy()
+        # 如果有不可序列化的成员，可以在这里进行处理
+        # 例如，删除或转换不可序列化的成员
+        return state
+
+    def __setstate__(self, state):
+        # 从状态字典恢复对象状态
+        self.__dict__.update(state)
+
     @staticmethod
     def _L(u, n):
         """
