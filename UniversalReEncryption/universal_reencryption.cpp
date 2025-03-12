@@ -77,6 +77,16 @@ public:
         partial_key2 = lam / partial_key1;
     }
 
+    // 新增的用于 pickle 恢复的构造函数
+    UniversalReEncryption(const std::string &n_str, const std::string &g_str,
+                          const std::string &lam_str, const std::string &mu_str,
+                          const std::string &partial_key1_str, const std::string &partial_key2_str)
+        : n(n_str), g(g_str), lam(lam_str), mu(mu_str),
+          partial_key1(partial_key1_str), partial_key2(partial_key2_str)
+    {
+        n_sq = n * n;  // 恢复 n_sq
+    }
+
     // 加密：对明文 m 进行 Paillier 加密，返回密文 c
     cpp_int encrypt(const cpp_int &m) {
         cpp_int r = get_random_r();
