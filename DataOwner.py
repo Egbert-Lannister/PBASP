@@ -9,6 +9,7 @@ sys.path.append(r"D:\Python_Script\PBASP\UniversalReEncryption")
 from tqdm import tqdm
 # from universal_re_encryption import ElGamal, encrypt_bitmap
 
+from utils import receive_data, send_to_server
 from IndexBuilder import IndexBuilder
 from encryption import ProxyPseudorandom, UniversalReEncryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
