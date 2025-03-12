@@ -17,8 +17,17 @@ print("加密后的密文列表:", encrypted)
 reencrypted = ure.reencrypt_bitmap(encrypted)
 print("重加密后的密文列表:", reencrypted)
 
+# 重加密
+reencrypted = ure.reencrypt_bitmap(encrypted)
+print("重加密后的密文列表:", reencrypted)
+
 # 分布式解密（这里以直接解密演示）
-decrypted = ure.decrypt_bitmap(encrypted)
+decrypted = ure.decrypt_bitmap(reencrypted)
 print("解密后的位图字符串:", decrypted)
+
+
+# # 分布式解密（这里以直接解密演示）
+# decrypted = ure.decrypt_bitmap(encrypted)
+# print("解密后的位图字符串:", decrypted)
 
 
