@@ -19,26 +19,10 @@ def receive_data(sock):
                 break
             received_data += chunk
 
-        # 反序列化数据
-        return pickle.loads(received_data)
-    except Exception as e:
-        print(f"接收数据时出错: {e}")
-        return None
-
-def send_to_server(data, server_address):
-    """发送数据到指定的服务器"""
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect(server_address)
-            # 序列化数据
-            serialized_data = pickle.dumps(data)
-            # 发送数据长度
-            sock.sendall(len(serialized_data).to_bytes(4, byteorder='big'))
-            # 发送数据
-            sock.sendall(serialized_data)
-        print(f"数据已成功发送到 {server_address}")
-    except Exception as e:
-        print(f"发送数据到 {server_address} 时出错: {e}")
+from BitMap import BitMap
+from IndexBuilder import IndexBuilder
+from encryption import ProxyPseudorandom
+from utils import receive_data, send_to_server
 
 def main():
     HOST = 'localhost'
