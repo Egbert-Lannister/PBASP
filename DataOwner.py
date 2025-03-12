@@ -241,8 +241,8 @@ if __name__ == "__main__":
     CLIENT_ADDRESS = (HOST, client_PORT)
 
     # 发送数据到服务器
-    send_to_server((encrypted_keyword_index_1, encrypted_position_index_1, proxy_pseudorandom_do_pri), CLOUD_SERVER_1_ADDRESS)
-    send_to_server((encrypted_keyword_index_2, encrypted_position_index_2, proxy_pseudorandom_do_pri), CLOUD_SERVER_2_ADDRESS)
+    send_to_server((encrypted_keyword_index_1, encrypted_position_index_1), CLOUD_SERVER_1_ADDRESS)
+    send_to_server((encrypted_keyword_index_2, encrypted_position_index_2), CLOUD_SERVER_2_ADDRESS)
 
 
 
