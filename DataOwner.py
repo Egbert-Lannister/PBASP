@@ -11,9 +11,10 @@ from tqdm import tqdm
 
 from utils import receive_data, send_to_server
 from IndexBuilder import IndexBuilder
-from encryption import ProxyPseudorandom, UniversalReEncryption
+from encryption import ProxyPseudorandom# , UniversalReEncryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
 # from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
+import universal_reencryption
 
 # 定义服务器 客户端地址
 HOST = 'localhost'
@@ -38,6 +39,11 @@ def read_data(db_path):
 def index_building(rows):
     # 创建 IndexBuilder 实例并构建关键字索引和位置索引
     index_builder = IndexBuilder(rows)
+
+    bitmap_map_2_object_map = index_builder.build_bitmap_map_2_object()
+
+    send_to_server(bitmap_map_2_object_map, CLIENT_ADDRESS)
+
     keyword_index = index_builder.build_keyword_index()
     print("构建了 {} 个关键字索引".format(len(keyword_index)))
 
@@ -63,9 +69,9 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, b_pub)
 
     # TUR UniversalReEncryption 通用重加密 密钥生成
-    ure = UniversalReEncryption(security_param=8)
+    # ure = UniversalReEncryption(security_param=8)
     # C++ 加速方法
-    # ure = universal_reencryption.UniversalReEncryption(security_param=8)
+    ure = universal_reencryption.UniversalReEncryption(security_param=8)
     print("公钥:", ure.public_key)
     print("私钥:", ure.private_key)
     print("部分解密密钥: partial_key1 =", ure.partial_key1, ", partial_key2 =", ure.partial_key2)
@@ -76,12 +82,12 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     # 发送代理伪随机密钥
     send_to_server((rk, pubX), CLOUD_SERVER_1_ADDRESS)
     send_to_server((rk, pubX), CLOUD_SERVER_2_ADDRESS)
-    # send_to_server((rk, pubX), CLIENT_ADDRESS)
+    send_to_server(proxy_pseudorandom_do_pub, CLIENT_ADDRESS)
 
     # 发送通用重加密密钥
     send_to_server(ure, CLOUD_SERVER_1_ADDRESS)
     send_to_server(ure, CLOUD_SERVER_2_ADDRESS)
-    # send_to_server(ure, CLIENT_ADDRESS)
+    send_to_server(ure, CLIENT_ADDRESS)
 
     """
     # 基于 ElGamal 加密系统的尝试
@@ -215,8 +221,6 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     # 计算总耗时
     total_time_2 = end_time_2 - start_time_2
     print(f"Position Index Encryption completed in {total_time_2:.3f} seconds.")
-
-
 
     return encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2
 

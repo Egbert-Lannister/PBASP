@@ -1,5 +1,7 @@
+import os
 import socket
 import pickle
+import time
 
 from tqdm import tqdm
 
@@ -11,6 +13,7 @@ import universal_reencryption
 # from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
 
 def main():
+    # 定义服务器 客户端地址
     HOST = 'localhost'
     cs1_PORT = 12345
     cs2_PORT = 12346
@@ -101,6 +104,14 @@ def main():
 
                 send_to_server((re_encrypted_keyword_index_2_1st, re_encrypted_position_index_2_1st), CLOUD_SERVER_2_ADDRESS)
 
+        # 创建标志文件，通知 服务器2 重加密完成
+        with open("CloudServer_1_1st_reencryption_done.lock", "w") as f:
+            f.write("CloudServer 1 1st Re-encryption completed")
+
+        # 等待服务器2第一次重加密完成
+        while not os.path.exists("CloudServer_2_1st_reencryption_done.lock"):
+            time.sleep(1)
+
         conn, addr = s.accept()
         with conn:
             print(f"连接来自 {addr}")
@@ -141,9 +152,33 @@ def main():
 
                     re_encrypted_position_index_1_2nd[position] = [capsule, re_encrypted_bitmap]
 
+        # 创建标志文件，通知 Client 重加密完成
+        with open("CloudServer_1_reencryption_done.lock", "w") as f:
+            f.write("CloudServer 1 Re-encryption completed")
+
+        conn, addr = s.accept()
+        with conn:
+            print(f"连接来自 {addr}")
+            data = receive_data(conn)
+            if data:
+                encrypted_query_keywords, encrypted_query_prefix_codes = data
+                print(f"Cloud Server 1 收到 encrypted_query_keyword, 共有 {len(encrypted_query_keywords)}条")
+                print(f"Cloud Server 1 收到 encrypted_query_prefix_code， 共有{len(encrypted_query_prefix_codes)}条")
+
+                # print(encrypted_query_keywords)
+                # print(encrypted_query_prefix_codes)
+
+                keyword_query_result = {}
+                position_query_result = {}
+
+                for encrypted_query_keyword in encrypted_query_keywords:
+                    keyword_query_result[encrypted_query_keyword] = re_encrypted_keyword_index_1_2nd[encrypted_query_keyword]
+
+                for encrypted_query_prefix_code in encrypted_query_prefix_codes:
+                    position_query_result[encrypted_query_prefix_code] = re_encrypted_position_index_1_2nd[encrypted_query_prefix_code]
 
 
-
+                send_to_server((keyword_query_result, position_query_result), CLIENT_ADDRESS)
 
 
 if __name__ == "__main__":

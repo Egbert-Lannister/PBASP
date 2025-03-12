@@ -1,5 +1,7 @@
+import os
 import socket
 import pickle
+import time
 
 from tqdm import tqdm
 
@@ -10,7 +12,9 @@ from utils import receive_data, send_to_server, re_encrypt_data
 import universal_reencryption
 
 def main():
+    # 定义服务器 客户端地址
     HOST = 'localhost'
+    cs1_PORT = 12345
     cs2_PORT = 12346
     client_PORT = 12347
     CLOUD_SERVER_1_ADDRESS = (HOST, cs1_PORT)  # CloudServer_1 的地址
@@ -96,9 +100,17 @@ def main():
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_keyword_index_1_1st[position] = [capsule, re_encrypted_bitmap]
+                    re_encrypted_position_index_1_1st[position] = [capsule, re_encrypted_bitmap]
 
                 send_to_server((re_encrypted_keyword_index_1_1st, re_encrypted_position_index_1_1st), CLOUD_SERVER_1_ADDRESS)
+
+        # 创建标志文件，通知 服务器2 重加密完成
+        with open("CloudServer_2_1st_reencryption_done.lock", "w") as f:
+            f.write("CloudServer 2 1st Re-encryption completed")
+
+        # 等待服务器2第一次重加密完成
+        while not os.path.exists("CloudServer_1_1st_reencryption_done.lock"):
+            time.sleep(1)
 
         conn, addr = s.accept()
         with conn:
@@ -157,6 +169,11 @@ def main():
                     keyword_query_result[encrypted_query_keyword] = re_encrypted_keyword_index_2_2nd[
                         encrypted_query_keyword]
 
+                for encrypted_query_prefix_code in encrypted_query_prefix_codes:
+                    position_query_result[encrypted_query_prefix_code] = re_encrypted_position_index_2_2nd[
+                        encrypted_query_prefix_code]
+
+                send_to_server((keyword_query_result, position_query_result), CLIENT_ADDRESS)
 
 
 if __name__ == "__main__":

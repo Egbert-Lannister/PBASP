@@ -1,23 +1,7 @@
+import os
 import socket
 import pickle
-
-
-def receive_data(sock):
-    """接收数据"""
-    try:
-        # 接收数据长度
-        data_length_bytes = sock.recv(4)
-        if not data_length_bytes:
-            return None
-        data_length = int.from_bytes(data_length_bytes, byteorder='big')
-
-        # 接收数据
-        received_data = b''
-        while len(received_data) < data_length:
-            chunk = sock.recv(data_length - len(received_data))
-            if not chunk:
-                break
-            received_data += chunk
+import time
 
 from BitMap import BitMap
 from IndexBuilder import IndexBuilder
@@ -74,7 +58,7 @@ def main():
         encrypted_query_keywords = []
         # 加密查询内容
         for value in query_keyword:
-            one_encrypted_keyword = ProxyPseudorandom.encrypt(value, proxy_pseudorandom_do_pub)
+            one_encrypted_keyword, capsule = ProxyPseudorandom.encrypt(value, proxy_pseudorandom_do_pub)
             encrypted_query_keywords.append(one_encrypted_keyword)
 
         encrypted_query_prefix_codes = []
@@ -111,6 +95,12 @@ def main():
                 print(f"Client 收到 keyword_query_result_2 :{keyword_query_result_2}")
                 print(f"Client 收到 position_query_result_2 :{position_query_result_2}")
 
+        decrypted_keyword_query_result_1 = {}
+        decrypted_position_query_result_1 = {}
+        decrypted_keyword_query_result_2 = {}
+        decrypted_position_query_result_2 = {}
+        decrypted_keyword_query_result = []
+        decrypted_position_query_result = []
 
         for key, value in keyword_query_result_1.items():
             decrypted_keyword_query_result_1[key] = ure.decrypt(value)

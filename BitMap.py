@@ -39,6 +39,14 @@ class BitMap:
             result.append(str(int(self.check_bit(i))))
         return "".join(result)  # 反转以匹配二进制的高位在前
 
+    def get_set_bits(self):
+        """返回位图中所有值为1的位的索引"""
+        set_bits = []
+        for i in range(self.size):
+            if self.check_bit(i):
+                set_bits.append(i)
+        return set_bits
+
     @staticmethod
     def logical_operation(bitmap1, bitmap2, operator):
         """
