@@ -506,8 +506,11 @@ if __name__ == '__main__':
     print("\n重加密后的密文列表:")
     print(reencrypted_ciphertexts)
 
-    # 分布式解密：模拟两个云服务器合作解密
-    decrypted_bitmap = ure.decrypt_bitmap(encrypted_ciphertexts)
+    reencrypted_ciphertexts = ure.reencrypt_bitmap(reencrypted_ciphertexts)
+    print("\n重加密后的密文列表:")
+    print(reencrypted_ciphertexts)
+
+    decrypted_bitmap = ure.decrypt_bitmap(reencrypted_ciphertexts)  # 使用重加密后的密文列表
     print("\n解密后的位图字符串:")
     print(decrypted_bitmap)
 
