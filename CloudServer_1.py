@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 from encryption import ProxyPseudorandom, UniversalReEncryption
 # from test_proxy import capsule
-
-
+from utils import receive_data, send_to_server, re_encrypt_data
+import universal_reencryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
 # from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
 
