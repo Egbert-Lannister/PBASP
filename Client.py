@@ -113,7 +113,28 @@ def main():
 
 
 
-    pass
+        for key, value in position_query_result_1.items():
+            decrypted_position_query_result_1[key] = ure.decrypt(value)
+            decrypted_position_query_result.append(ure.decrypt(value))
+
+        for key, value in keyword_query_result_2.items():
+            decrypted_keyword_query_result_2[key] = ure.decrypt(value)
+            decrypted_keyword_query_result.append(ure.decrypt(value))
+
+        for key, value in position_query_result_2.items():
+            decrypted_position_query_result_2[key] = ure.decrypt(value)
+            decrypted_position_query_result.append(ure.decrypt(value))
+
+        keyword_query_result_AND = BitMap.bitmaps_logical_operation(decrypted_keyword_query_result, "AND")
+        position_query_result_OR = BitMap.bitmaps_logical_operation(decrypted_position_query_result, "OR")
+
+        query_result = BitMap.bitmaps_logical_operation([keyword_query_result_AND, position_query_result_OR], "AND")
+
+        result = query_result.get_set_bits()
+
+        print(f"查询到的对象ID是{bitmap_map_2_object_map[result[0]]}")
+
+
 
 
 if __name__ == "__main__":
