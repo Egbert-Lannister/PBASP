@@ -40,7 +40,9 @@ def main():
                 print("收到以下数据：")
                 print(f"Cloud Server 1 收到 ure :{ure}")
 
-
+        # 等待 DataOwner 完成
+        while not os.path.exists("dataowner_done.lock"):
+            time.sleep(1)
 
         conn, addr = s.accept()
         with conn:
