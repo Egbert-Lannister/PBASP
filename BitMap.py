@@ -68,6 +68,42 @@ class BitMap:
 
         return result
 
+    @staticmethod
+    def bitmaps_logical_operation(bitmaps, operation):
+        """
+        对列表中的所有位图进行指定的逻辑操作（AND 或 OR），返回结果位图。
+
+        :param bitmaps: 包含多个 BitMap 对象的列表
+        :param operation: 指定的逻辑操作，可以是 "AND" 或 "OR"
+        :return: 一个 BitMap 对象，表示逻辑操作的结果
+        """
+        if not bitmaps:
+            raise ValueError("位图列表为空，无法进行逻辑运算")
+
+        # 获取第一个位图的大小，并检查所有位图大小是否一致
+        size = bitmaps[0].size
+        for bmp in bitmaps:
+            if bmp.size != size:
+                raise ValueError("位图大小不一致，无法进行逻辑运算")
+
+        # 初始化结果位图
+        result = BitMap(size)
+
+        # 设置初始值为第一个位图
+        result = bitmaps[0]
+
+        # 根据指定的操作选择对应的逻辑运算方法
+        if operation == "AND":
+            for bmp in bitmaps[1:]:
+                result = result.and_operation(bmp)
+        elif operation == "OR":
+            for bmp in bitmaps[1:]:
+                result = result.or_operation(bmp)
+        else:
+            raise ValueError("不支持的逻辑操作，仅支持 'AND' 或 'OR'")
+
+        return result
+
     def and_operation(self, other):
         """与运算"""
         return BitMap.logical_operation(self, other, "AND")
