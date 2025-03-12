@@ -220,21 +220,6 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
 
     return encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2
 
-def send_to_server(data, server_address):
-    """发送数据到指定的服务器"""
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect(server_address)
-            # 序列化数据
-            serialized_data = pickle.dumps(data)
-            # 发送数据长度
-            sock.sendall(len(serialized_data).to_bytes(4, byteorder='big'))
-            # 发送数据
-            sock.sendall(serialized_data)
-        print(f"数据已成功发送到 {server_address}")
-    except Exception as e:
-        print(f"发送数据到 {server_address} 时出错: {e}")
-
 
 if __name__ == "__main__":
     db_path = 'data_object_2000_keyword_100.db'
