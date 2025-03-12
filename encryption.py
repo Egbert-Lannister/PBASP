@@ -510,3 +510,8 @@ if __name__ == '__main__':
     decrypted_bitmap = ure.decrypt_bitmap(encrypted_ciphertexts)
     print("\n解密后的位图字符串:")
     print(decrypted_bitmap)
+
+    # # 分布式解密：模拟两个云服务器合作解密
+    # decrypted_bitmap = ure.decrypt_bitmap(encrypted_ciphertexts)
+    # print("\n解密后的位图字符串:")
+    # print(decrypted_bitmap)
