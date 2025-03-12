@@ -227,7 +227,7 @@ if __name__ == "__main__":
     # 建索引结束
 
     # 开始加密
-    encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2, proxy_pseudorandom_do_pub, proxy_pseudorandom_do_pri, ure = data_encryption(keyword_index_1, keyword_index_2, position_index_1, position_index_2)
+    encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2, proxy_pseudorandom_do_pub = data_encryption(keyword_index_1, keyword_index_2, position_index_1, position_index_2)
     # 加密结束
 
     # 传递给服务器
