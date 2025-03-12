@@ -112,6 +112,9 @@ def main():
                 print(f"Client 收到 position_query_result_2 :{position_query_result_2}")
 
 
+        for key, value in keyword_query_result_1.items():
+            decrypted_keyword_query_result_1[key] = ure.decrypt(value)
+            decrypted_keyword_query_result.append(ure.decrypt(value))
 
         for key, value in position_query_result_1.items():
             decrypted_position_query_result_1[key] = ure.decrypt(value)
