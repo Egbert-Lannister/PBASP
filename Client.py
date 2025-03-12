@@ -100,6 +100,16 @@ def main():
                 print(f"Client 收到 keyword_query_result_1 :{keyword_query_result_1}")
                 print(f"Client 收到 position_query_result_1 :{position_query_result_1}")
 
+        # 接收查询结果
+        conn, addr = s.accept()
+        with conn:
+            data = receive_data(conn)
+            if data:
+                keyword_query_result_2, position_query_result_2 = data
+                print("收到以下数据：")
+                print("收到以下数据：")
+                print(f"Client 收到 keyword_query_result_2 :{keyword_query_result_2}")
+                print(f"Client 收到 position_query_result_2 :{position_query_result_2}")
 
 
 
