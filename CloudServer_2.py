@@ -12,7 +12,10 @@ import universal_reencryption
 def main():
     HOST = 'localhost'
     cs2_PORT = 12346
-    CLOUD_SERVER_1_ADDRESS = ('localhost', 12345)
+    client_PORT = 12347
+    CLOUD_SERVER_1_ADDRESS = (HOST, cs1_PORT)  # CloudServer_1 的地址
+    # CLOUD_SERVER_2_ADDRESS = (HOST, cs2_PORT)  # CloudServer_2 的地址
+    CLIENT_ADDRESS = (HOST, client_PORT)  # Client 客户端的地址
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, cs2_PORT))
