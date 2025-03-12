@@ -201,7 +201,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
 
 
 
-    return encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2, proxy_pseudorandom_do_pub, proxy_pseudorandom_do_pri, ure
+    return encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2
 
 def send_to_server(data, server_address):
     """发送数据到指定的服务器"""
