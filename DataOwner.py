@@ -238,5 +238,7 @@ if __name__ == "__main__":
     send_to_server((encrypted_keyword_index_1, encrypted_position_index_1), CLOUD_SERVER_1_ADDRESS)
     send_to_server((encrypted_keyword_index_2, encrypted_position_index_2), CLOUD_SERVER_2_ADDRESS)
 
-
+    # 创建标志文件，通知其他进程 DataOwner 已完成
+    with open("dataowner_done.lock", "w") as f:
+        f.write("DataOwner completed")
 
