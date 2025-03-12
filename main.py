@@ -19,6 +19,7 @@ def main():
     # 等待进程完成
     server1_process.wait()
     server2_process.wait()
+    client_process.wait()
     data_owner_process.wait()
 
 if __name__ == "__main__":
