@@ -67,7 +67,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     print("部分解密密钥: partial_key1 =", ure.partial_key1, ", partial_key2 =", ure.partial_key2)
 
     """
-    基于 ElGamal 加密系统的尝试
+    # 基于 ElGamal 加密系统的尝试
     # 初始化 ElGamal 加密系统（这里 k=32 位，仅用于示例，实际中应更大）
     elgamal = ElGamal(8)
     # 记录开始时间
