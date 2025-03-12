@@ -231,14 +231,6 @@ if __name__ == "__main__":
     # 加密结束
 
     # 传递给服务器
-    # 定义服务器地址
-    HOST = 'localhost'
-    cs1_PORT = 12345
-    cs2_PORT = 12346
-    client_PORT = 12347
-    CLOUD_SERVER_1_ADDRESS = (HOST, cs1_PORT)  # CloudServer_1 的地址
-    CLOUD_SERVER_2_ADDRESS = (HOST, cs2_PORT)  # CloudServer_2 的地址
-    CLIENT_ADDRESS = (HOST, client_PORT)
 
     # 发送数据到服务器
     send_to_server((encrypted_keyword_index_1, encrypted_position_index_1), CLOUD_SERVER_1_ADDRESS)
