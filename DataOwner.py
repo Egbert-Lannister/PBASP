@@ -14,7 +14,7 @@ from encryption import ProxyPseudorandom #, UniversalReEncryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
 from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
 
-# 定义服务器地址
+# 定义服务器 客户端地址
 HOST = 'localhost'
 cs1_PORT = 12345
 cs2_PORT = 12346
