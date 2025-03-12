@@ -134,6 +134,25 @@ def main():
 
                     re_encrypted_position_index_2_2nd[position] = [capsule, re_encrypted_bitmap]
 
+        # 创建标志文件，通知 Client 重加密完成
+        with open("CloudServer_2_reencryption_done.lock", "w") as f:
+            f.write("CloudServer 2 Re-encryption completed")
+
+        conn, addr = s.accept()
+        with conn:
+            print(f"连接来自 {addr}")
+            data = receive_data(conn)
+            if data:
+                encrypted_query_keywords, encrypted_query_prefix_codes = data
+                print(f"Cloud Server 2 收到 encrypted_query_keyword, 共有 {len(encrypted_query_keywords)}条")
+                print(f"Cloud Server 2 收到 encrypted_query_prefix_code， 共有{len(encrypted_query_prefix_codes)}条")
+
+                keyword_query_result = {}
+                position_query_result = {}
+
+                for encrypted_query_keyword in encrypted_query_keywords:
+                    keyword_query_result[encrypted_query_keyword] = re_encrypted_keyword_index_2_2nd[
+                        encrypted_query_keyword]
 
 
 
