@@ -1,1 +1,3 @@
 data/yelp_dataset/
+.gitignore
+.idea
