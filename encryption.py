@@ -2,6 +2,7 @@ import hashlib
 import pickle
 import random
 import math
+import hmac
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from ecdsa import SigningKey, VerifyingKey, NIST256p
@@ -126,9 +127,12 @@ class ProxyPseudorandom:
         return ct
 
     @staticmethod
-    def encrypt(message, pub_key):
+    def encrypt(message, pub_key, mode="default", search_key=None):
         """
-        加密接口：返回密文和 capsule
+        加密接口：
+         - mode="default" 为普通消息加密（随机加密）
+         - mode="keyword" 为关键字加密，此时需要提供 search_key
+           生成确定性搜索令牌，并在 capsule 中记录 tag 和重加密次数（初始为 0）
         """
         if mode == "keyword":
             if search_key is None:
@@ -230,6 +234,10 @@ class ProxyPseudorandom:
           - 校验 capsule 是否正确（验证 g^s == V + E^(H2(E||V))）
           - 计算 E' = E^rk, V' = V^rk
         """
+        # 如果 capsule 为关键字或位置模式（包含 'tag'），则调用关键字位置重加密逻辑
+        if 'tag' in capsule:
+            return ProxyPseudorandom.re_encrypt_keyword(capsule, rk)
+        # 否则，按照普通消息的重加密逻辑处理
         generator = ProxyPseudorandom.CURVE.generator
         left_point = generator * capsule['s']
         h_data = ProxyPseudorandom.concat_bytes(
@@ -344,6 +352,11 @@ if __name__ == "__main__":
     b_pri, b_pub = ProxyPseudorandom.generate_keys()
     message = "Hello, Proxy Re-Encryption"
     print("原始消息:", message)
+
+    message2 = "Hello, Proxy Re-Encryption"
+    cipher_text2, capsule2 = ProxyPseudorandom.encrypt(message2, a_pub)
+    print(cipher_text2)
+    print(cipher_text2.hex())
 
     # Alice 加密消息
     cipher_text, capsule = ProxyPseudorandom.encrypt(message, a_pub)

@@ -64,6 +64,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     # TPF ProxyPseudorandom 代理伪随机加密 密钥生成 (Data Owner端)
     proxy_pseudorandom_do_pri, proxy_pseudorandom_do_pub = ProxyPseudorandom.generate_keys()
     b_pri, b_pub = ProxyPseudorandom.generate_keys()
+    proxy_pseudorandom_key = "my_very_secret_key"
 
     # 生成重加密密钥
     rk, pubX = ProxyPseudorandom.re_key_gen(proxy_pseudorandom_do_pri, b_pub)
@@ -82,7 +83,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     # 发送代理伪随机密钥
     send_to_server((rk, pubX), CLOUD_SERVER_1_ADDRESS)
     send_to_server((rk, pubX), CLOUD_SERVER_2_ADDRESS)
-    send_to_server(proxy_pseudorandom_do_pub, CLIENT_ADDRESS)
+    send_to_server(proxy_pseudorandom_key, CLIENT_ADDRESS)
 
     # 发送通用重加密密钥
     send_to_server(ure, CLOUD_SERVER_1_ADDRESS)
@@ -142,32 +143,16 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
 
     # DataOwner 加密消息
     for key, value in tqdm(keyword_index_1.items(), desc="Encrypting the keyword index 1...", total=len(keyword_index_1)):
-
-        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub)
+        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
         # print("关键词密文:", cipher_text.hex())
-
-        # Capsule 序列化和反序列化测试
-        # Capsule 后续重加密会继续处理 用于解密
-        encoded_capsule = ProxyPseudorandom.encode_capsule(capsule)
-        capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
 
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
-        # print(type(encrypted_ciphertexts))
-        # 加密之后的位图不是BitMap，是列表
-
         encrypted_keyword_index_1[cipher_text] = [capsule, encrypted_ciphertexts]
 
     for key, value in tqdm(keyword_index_2.items(), desc="Encrypting the keyword index 2...", total=len(keyword_index_2)):
-
-        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub)
-        # print("关键词密文:", cipher_text.hex())
-
-        # Capsule 序列化和反序列化测试
-        # Capsule 后续重加密会继续处理 用于解密
-        encoded_capsule = ProxyPseudorandom.encode_capsule(capsule)
-        capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
+        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="position", search_key=proxy_pseudorandom_key)
 
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
@@ -186,14 +171,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
 
 
     for key, value in tqdm(position_index_1.items(), desc="Encrypting the position index 1...", total=len(position_index_1)):
-
-        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub)
-        # print("前缀码密文:", cipher_text.hex())
-
-        # Capsule 序列化和反序列化测试
-        # Capsule 后续重加密会继续处理 用于解密
-        encoded_capsule = ProxyPseudorandom.encode_capsule(capsule)
-        capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
+        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
 
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
@@ -201,14 +179,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
         encrypted_position_index_1[cipher_text] = [capsule, encrypted_ciphertexts]
 
     for key, value in tqdm(position_index_2.items(), desc="Encrypting the position index 2...", total=len(position_index_2)):
-
-        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub)
-        # print("前缀码密文:", cipher_text.hex())
-
-        # Capsule 序列化和反序列化测试
-        # Capsule 后续重加密会继续处理 用于解密
-        encoded_capsule = ProxyPseudorandom.encode_capsule(capsule)
-        capsule2 = ProxyPseudorandom.decode_capsule(encoded_capsule)
+        cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="position", search_key=proxy_pseudorandom_key)
 
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(str(value))

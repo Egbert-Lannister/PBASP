@@ -2,3 +2,8 @@ data/yelp_dataset/
 .gitignore
 .idea
 构建加密索引时间.docx
+CloudServer_1_1st_reencryption_done.lock
+CloudServer_1_reencryption_done.lock
+CloudServer_2_1st_reencryption_done.lock
+CloudServer_2_reencryption_done.lock
+dataowner_done.lock

@@ -76,31 +76,21 @@ def main():
                 re_encrypted_keyword_index_2_1st = {}
                 re_encrypted_position_index_2_1st = {}
 
-                for key, value in tqdm(encrypted_keyword_index_2.items(), desc="1st Re-Encrypting the keyword index 2...", total=len(encrypted_keyword_index_2)):
-                    keyword = key
-                    capsule = value[0]
-                    encrypted_bitmap = value[1]
-
-
+                for keyword, (capsule, encrypted_bitmap) in tqdm(encrypted_keyword_index_2.items(), desc="1st Re-Encrypting the keyword index 2...", total=len(encrypted_keyword_index_2)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_keyword_index_2_1st[keyword] = [capsule, re_encrypted_bitmap]
+                    re_encrypted_keyword_index_2_1st[keyword] = [new_capsule, re_encrypted_bitmap]
 
 
                 # 进行重加密
-                for key, value in tqdm(encrypted_position_index_2.items(), desc="1st Re-Encrypting the position index 2...", total=len(encrypted_position_index_2)):
-                    position = key
-                    capsule = value[0]
-                    encrypted_bitmap = value[1]
-
-
+                for position, (capsule, encrypted_bitmap) in tqdm(encrypted_position_index_2.items(), desc="1st Re-Encrypting the position index 2...", total=len(encrypted_position_index_2)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_position_index_2_1st[position] = [capsule, re_encrypted_bitmap]
+                    re_encrypted_position_index_2_1st[position] = [new_capsule, re_encrypted_bitmap]
 
                 send_to_server((re_encrypted_keyword_index_2_1st, re_encrypted_position_index_2_1st), CLOUD_SERVER_2_ADDRESS)
 
@@ -126,31 +116,22 @@ def main():
                 re_encrypted_position_index_1_2nd = {}
 
                 # 进行重加密
-                for key, value in tqdm(re_encrypted_keyword_index_1_1st.items(), desc="2nd Re-Encrypting the keyword index 1...", total=len(re_encrypted_keyword_index_1_1st)):
-                    keyword = key
-                    capsule = value[0]
-                    encrypted_bitmap = value[1]
-
+                for keyword, (capsule, encrypted_bitmap) in tqdm(re_encrypted_keyword_index_1_1st.items(), desc="2nd Re-Encrypting the keyword index 1...", total=len(re_encrypted_keyword_index_1_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_keyword_index_1_2nd[keyword] = [capsule, re_encrypted_bitmap]
+                    re_encrypted_keyword_index_1_2nd[keyword] = [new_capsule, re_encrypted_bitmap]
 
 
 
                 # 进行重加密
-                for key, value in tqdm(re_encrypted_position_index_1_1st.items(), desc="2nd Re-Encrypting the position index 1...", total=len(re_encrypted_position_index_1_1st)):
-                    position = key
-                    capsule = value[0]
-                    encrypted_bitmap = value[1]
-
-
+                for position, (capsule, encrypted_bitmap) in tqdm(re_encrypted_position_index_1_1st.items(), desc="2nd Re-Encrypting the position index 1...", total=len(re_encrypted_position_index_1_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_position_index_1_2nd[position] = [capsule, re_encrypted_bitmap]
+                    re_encrypted_position_index_1_2nd[position] = [new_capsule, re_encrypted_bitmap]
 
         # 创建标志文件，通知 Client 重加密完成
         with open("CloudServer_1_reencryption_done.lock", "w") as f:
@@ -162,11 +143,8 @@ def main():
             data = receive_data(conn)
             if data:
                 encrypted_query_keywords, encrypted_query_prefix_codes = data
-                print(f"Cloud Server 1 收到 encrypted_query_keyword, 共有 {len(encrypted_query_keywords)}条")
-                print(f"Cloud Server 1 收到 encrypted_query_prefix_code， 共有{len(encrypted_query_prefix_codes)}条")
-
-                # print(encrypted_query_keywords)
-                # print(encrypted_query_prefix_codes)
+                print(f"Cloud Server 1 收到 encrypted_query_keywords, 共有 {len(encrypted_query_keywords)}条")
+                print(f"Cloud Server 1 收到 encrypted_query_prefix_codes， 共有{len(encrypted_query_prefix_codes)}条")
 
                 keyword_query_result = {}
                 position_query_result = {}

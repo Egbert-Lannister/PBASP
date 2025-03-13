@@ -29,7 +29,7 @@ def main():
     # 删除所有 .lock 文件
     delete_lock_files()
 
-    print("程序运行结束，所有锁文件已删除")
+    print("程序运行结束，所有文件锁已删除")
 
 
 if __name__ == "__main__":

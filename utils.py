@@ -58,9 +58,11 @@ def re_encrypt_data(data, rk, ure, progress_desc):
 def delete_lock_files():
     """删除所有锁文件"""
     lock_files = [
+        "CloudServer_1_1st_reencryption_done.lock",
+        "CloudServer_2_1st_reencryption_done.lock",
+        "dataowner_done.lock",
         "CloudServer_1_reencryption_done.lock",
-        "CloudServer_2_reencryption_done.lock",
-        "client_done.lock"  # 假设客户端也会创建一个锁文件
+        "CloudServer_2_reencryption_done.lock"
     ]
     for file in lock_files:
         if os.path.exists(file):

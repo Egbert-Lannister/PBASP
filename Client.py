@@ -19,9 +19,9 @@ def main():
     latitude = 39.9555052
     longitude = -75.1555641
 
-    query_keyword = ["Restaurants", "Food"]
+    query_keywords = ["Restaurants", "Food"]
 
-    query_prefix_code = IndexBuilder.get_prefix_codes(IndexBuilder.lat_lon_to_hilbert_to_64bit_binary(latitude, longitude))
+    query_prefix_codea = IndexBuilder.get_prefix_codes(IndexBuilder.lat_lon_to_hilbert_to_64bit_binary(latitude, longitude))
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, client_PORT))
@@ -42,9 +42,9 @@ def main():
         with conn:
             data = receive_data(conn)
             if data:
-                proxy_pseudorandom_do_pub = data
+                proxy_pseudorandom_key = data
                 print("收到以下数据：")
-                print(f"Client 收到 proxy_pseudorandom_do_pub :{proxy_pseudorandom_do_pub}")
+                print(f"Client 收到 proxy_pseudorandom_key :{proxy_pseudorandom_key}")
 
         # 接收通用重加密密钥
         conn, addr = s.accept()
@@ -57,14 +57,20 @@ def main():
 
         encrypted_query_keywords = []
         # 加密查询内容
-        for value in query_keyword:
-            one_encrypted_keyword, capsule = ProxyPseudorandom.encrypt(value, proxy_pseudorandom_do_pub)
+        for value in query_keywords:
+            one_encrypted_keyword = ProxyPseudorandom.generate_search_token(value, proxy_pseudorandom_key)
             encrypted_query_keywords.append(one_encrypted_keyword)
 
         encrypted_query_prefix_codes = []
-        for value in query_prefix_code:
-            one_encrypted_prefix_code = ProxyPseudorandom.encrypt(value, proxy_pseudorandom_do_pub)
+        for value in query_prefix_codea:
+            one_encrypted_prefix_code = ProxyPseudorandom.generate_search_token(value, proxy_pseudorandom_key)
             encrypted_query_prefix_codes.append(one_encrypted_prefix_code)
+        # print("查询关键字")
+        # print(encrypted_query_keywords)
+
+        # 初始查询令牌为 bytes
+        encrypted_query_keywords = [t.encode("utf-8") for t in encrypted_query_keywords]
+        encrypted_query_prefix_codes = [t.encode("utf-8") for t in encrypted_query_prefix_codes]
 
         # 等待重加密完成
         while not os.path.exists("CloudServer_1_reencryption_done.lock") and not os.path.exists("CloudServer_2_reencryption_done.lock"):
@@ -81,8 +87,8 @@ def main():
             if data:
                 keyword_query_result_1, position_query_result_1 = data
                 print("收到以下数据：")
-                print(f"Client 收到 keyword_query_result_1 :{keyword_query_result_1}")
-                print(f"Client 收到 position_query_result_1 :{position_query_result_1}")
+                print(f"Client 收到 keyword_query_result_1 :{len(keyword_query_result_1)}")
+                print(f"Client 收到 position_query_result_1 :{len(position_query_result_1)}")
 
         # 接收查询结果
         conn, addr = s.accept()
@@ -92,8 +98,8 @@ def main():
                 keyword_query_result_2, position_query_result_2 = data
                 print("收到以下数据：")
                 print("收到以下数据：")
-                print(f"Client 收到 keyword_query_result_2 :{keyword_query_result_2}")
-                print(f"Client 收到 position_query_result_2 :{position_query_result_2}")
+                print(f"Client 收到 keyword_query_result_2 :{len(keyword_query_result_2)}")
+                print(f"Client 收到 position_query_result_2 :{len(position_query_result_2)}")
 
         decrypted_keyword_query_result_1 = {}
         decrypted_position_query_result_1 = {}
@@ -103,20 +109,20 @@ def main():
         decrypted_position_query_result = []
 
         for key, value in keyword_query_result_1.items():
-            decrypted_keyword_query_result_1[key] = ure.decrypt(value)
-            decrypted_keyword_query_result.append(ure.decrypt(value))
+            decrypted_keyword_query_result_1[key] = BitMap.from_string(ure.decrypt_bitmap(value))
+            decrypted_keyword_query_result.append(decrypted_keyword_query_result_1[key])
 
         for key, value in position_query_result_1.items():
-            decrypted_position_query_result_1[key] = ure.decrypt(value)
-            decrypted_position_query_result.append(ure.decrypt(value))
+            decrypted_position_query_result_1[key] = BitMap.from_string(ure.decrypt_bitmap(value))
+            decrypted_position_query_result.append(decrypted_position_query_result_1[key])
 
         for key, value in keyword_query_result_2.items():
-            decrypted_keyword_query_result_2[key] = ure.decrypt(value)
-            decrypted_keyword_query_result.append(ure.decrypt(value))
+            decrypted_keyword_query_result_2[key] = BitMap.from_string(ure.decrypt_bitmap(value))
+            decrypted_keyword_query_result.append(decrypted_keyword_query_result_2[key])
 
         for key, value in position_query_result_2.items():
-            decrypted_position_query_result_2[key] = ure.decrypt(value)
-            decrypted_position_query_result.append(ure.decrypt(value))
+            decrypted_position_query_result_2[key] = BitMap.from_string(ure.decrypt_bitmap(value))
+            decrypted_position_query_result.append(decrypted_position_query_result_2[key])
 
         keyword_query_result_AND = BitMap.bitmaps_logical_operation(decrypted_keyword_query_result, "AND")
         position_query_result_OR = BitMap.bitmaps_logical_operation(decrypted_position_query_result, "OR")
