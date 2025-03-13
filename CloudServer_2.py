@@ -183,9 +183,31 @@ def main():
                     if not found:
                         keyword_query_result[init_token] = "NotFound"
 
-                for encrypted_query_prefix_code in encrypted_query_prefix_codes:
-                    position_query_result[encrypted_query_prefix_code] = re_encrypted_position_index_2_2nd[
-                        encrypted_query_prefix_code]
+                for qt_prefix_code in encrypted_query_prefix_codes:
+                    # 查找时用 key 以 bytes 形式存储，故先转换为字符串
+                    init_token = qt_prefix_code.decode("utf-8")
+                    # 遍历加密关键字索引，寻找匹配项
+                    found = False
+                    for encrypted_prefix_code,  (capsule, encrypted_bitmap) in re_encrypted_position_index_2_2nd.items():
+                        # 获取重加密次数
+                        count = capsule.get("count", 0)
+                        # 对客户端原始令牌转换 count 次
+                        transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
+                        # 与存储在 capsule 中的 tag 比较
+                        if transformed_token == capsule["tag"]:
+                            position_query_result[encrypted_prefix_code] = encrypted_bitmap
+                            found = True
+                            break
+                    if not found:
+                        keyword_query_result[init_token] = "NotFound"
+
+                # for encrypted_query_keyword in encrypted_query_keywords:
+                #     keyword_query_result[encrypted_query_keyword] = re_encrypted_keyword_index_2_2nd[
+                #         encrypted_query_keyword]
+                #
+                # for encrypted_query_prefix_code in encrypted_query_prefix_codes:
+                #     position_query_result[encrypted_query_prefix_code] = re_encrypted_position_index_2_2nd[
+                #         encrypted_query_prefix_code]
 
                 send_to_server((keyword_query_result, position_query_result), CLIENT_ADDRESS)
 
