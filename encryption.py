@@ -130,9 +130,30 @@ class ProxyPseudorandom:
         """
         加密接口：返回密文和 capsule
         """
-        capsule, key_bytes = ProxyPseudorandom.encrypt_key_gen(pub_key)
-        ct = ProxyPseudorandom.encrypt_message_by_aes_key(message, key_bytes)
-        return ct, capsule
+        if mode == "keyword":
+            if search_key is None:
+                raise ValueError("关键字加密必须提供 proxy_pseudorandom_key")
+            # 生成初始确定性搜索令牌
+            token = ProxyPseudorandom.generate_search_token(message, search_key)
+            # cipher_text 就是该令牌（以 bytes 形式存储）
+            cipher_text = token.encode("utf-8")
+            # capsule 记录 tag 和 count，count 表示已重加密次数
+            capsule = {'tag': token, 'count': 0}
+            return cipher_text, capsule
+        elif mode == "position":
+            if search_key is None:
+                raise ValueError("关键字加密必须提供 proxy_pseudorandom_key")
+            # 生成初始确定性搜索令牌
+            token = ProxyPseudorandom.generate_search_token(message, search_key)
+            # cipher_text 就是该令牌（以 bytes 形式存储）
+            cipher_text = token.encode("utf-8")
+            # capsule 记录 tag 和 count，count 表示已重加密次数
+            capsule = {'tag': token, 'count': 0}
+            return cipher_text, capsule
+        else:
+            capsule, key_bytes = ProxyPseudorandom.encrypt_key_gen(pub_key)
+            ct = ProxyPseudorandom.encrypt_message_by_aes_key(message, key_bytes)
+            return ct, capsule
 
     @staticmethod
     def re_key_gen(a_pri, b_pub):
