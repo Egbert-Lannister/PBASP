@@ -155,6 +155,41 @@ class ProxyPseudorandom:
             ct = ProxyPseudorandom.encrypt_message_by_aes_key(message, key_bytes)
             return ct, capsule
 
+    # --------------------- 关键字重加密及查询转换 ---------------------
+    @staticmethod
+    def re_encrypt_keyword(capsule, server_rk):
+        """
+        针对关键字加密的 capsule 进行重加密：
+         - 利用服务器的重加密密钥 server_rk（转换为字节作为 HMAC 密钥）
+         - 对 capsule['tag'] 进行更新，更新方式可采用 HMAC 计算：
+             new_tag = HMAC(server_rk, old_tag || count)
+         - 同时 capsule['count'] 加1，记录重加密次数
+        """
+        old_tag = capsule['tag']
+        count = capsule.get('count', 0)
+        # 将服务器重加密密钥转换为 bytes（例如直接取字符串形式）
+        round_key = str(server_rk).encode("utf-8")
+        # 计算新 tag（这里简单将 count 转为字节拼接）
+        new_tag = hmac.new(round_key, old_tag.encode("utf-8") + str(count).encode("utf-8"), hashlib.sha256).hexdigest()
+        capsule['tag'] = new_tag
+        capsule['count'] = count + 1
+        return capsule
+
+    @staticmethod
+    def transform_query_token(query_token, server_rk, count):
+        """
+        当服务器接收到客户端查询时，
+         根据存储在索引中的 capsule count，对客户端原始查询令牌进行重加密转换，
+         使之与经过多次重加密后的关键字密文匹配。
+         这里模拟将查询令牌经过 count 次重加密，使用与 re_encrypt_keyword 相同的逻辑。
+        """
+        token = query_token  # 初始令牌（十六进制字符串）
+        round_key = str(server_rk).encode("utf-8")
+        for i in range(count):
+            token = hmac.new(round_key, token.encode("utf-8") + str(i).encode("utf-8"), hashlib.sha256).hexdigest()
+        return token
+
+    # --------------------- 其他重加密和解密相关功能（保持原有逻辑） ---------------------
     @staticmethod
     def re_key_gen(a_pri, b_pub):
         """
