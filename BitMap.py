@@ -48,6 +48,17 @@ class BitMap:
         return set_bits
 
     @staticmethod
+    def from_string(bit_str):
+        """
+        根据位图的字符串表示（如 "100000001"）创建一个 BitMap 对象
+        """
+        bm = BitMap(len(bit_str))
+        for idx, ch in enumerate(bit_str):
+            if ch == "1":
+                bm.set_bit(idx)
+        return bm
+
+    @staticmethod
     def logical_operation(bitmap1, bitmap2, operator):
         """
         对两个位图执行逻辑运算
