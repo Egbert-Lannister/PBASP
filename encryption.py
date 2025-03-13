@@ -318,6 +318,24 @@ class ProxyPseudorandom:
         s = data['s']
         return {'E': E, 'V': V, 's': s}
 
+    # --------------------- 搜索令牌（Search Token）功能 ---------------------
+    @staticmethod
+    def generate_search_token(keyword, search_key):
+        """
+        使用 HMAC-SHA256 生成确定性的搜索令牌
+        参数:
+            keyword: 待加密的关键字（字符串）
+            search_key: 共享密钥（字符串或 bytes）
+        返回:
+            十六进制字符串形式的搜索令牌
+        """
+        if not isinstance(search_key, bytes):
+            search_key = search_key.encode('utf-8')
+        if not isinstance(keyword, bytes):
+            keyword = keyword.encode('utf-8')
+        token = hmac.new(search_key, keyword, hashlib.sha256).hexdigest()
+        return token
+
 
 # --------------------- 示例调用 ---------------------
 if __name__ == "__main__":
