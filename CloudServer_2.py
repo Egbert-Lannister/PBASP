@@ -190,6 +190,25 @@ def main():
 
                 send_to_server((keyword_query_result, position_query_result), CLIENT_ADDRESS)
 
+        # 等待查询结束
+        while not os.path.exists("query_done.lock"):
+            time.sleep(1)
+
+        conn, addr = s.accept()
+        with conn:
+            print(f"连接来自 {addr}")
+            data = receive_data(conn)
+            if data:
+                encrypted_update_keyword_query_result_2, encrypted_update_position_query_result_2 = data
+
+                for key, value in encrypted_update_keyword_query_result_2.items():
+                    re_encrypted_keyword_index_2_2nd[key] = value
+
+                for key, value in encrypted_update_position_query_result_2.items():
+                    re_encrypted_position_index_2_2nd[key] = value
+
+
+
 
 if __name__ == "__main__":
     main()
