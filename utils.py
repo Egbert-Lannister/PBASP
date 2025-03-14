@@ -62,7 +62,8 @@ def delete_lock_files():
         "CloudServer_2_1st_reencryption_done.lock",
         "dataowner_done.lock",
         "CloudServer_1_reencryption_done.lock",
-        "CloudServer_2_reencryption_done.lock"
+        "CloudServer_2_reencryption_done.lock",
+        "query_done.lock"
     ]
     for file in lock_files:
         if os.path.exists(file):

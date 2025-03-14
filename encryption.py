@@ -581,12 +581,17 @@ if __name__ == '__main__':
 
     # 待加密的位图字符串
     bitmap = "1010100110"
+    bitmap2 = "10101001100"
     print("原始位图字符串:", bitmap)
 
     # 仅加密
     encrypted_ciphertexts = ure.encrypt_bitmap(bitmap)
     print("\n加密后的密文列表:")
     print(encrypted_ciphertexts)
+
+    encrypted_ciphertexts2 = ure.encrypt_bitmap(bitmap2)
+    print("\n加密后的密文列表:")
+    print(encrypted_ciphertexts2)
 
     # 单独重加密
     reencrypted_ciphertexts = ure.reencrypt_bitmap(encrypted_ciphertexts)

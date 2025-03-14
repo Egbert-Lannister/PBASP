@@ -10,7 +10,6 @@ from tqdm import tqdm
 还有关键字读取过程中的去重功能
 """
 
-
 # 设置读取对象个数
 object_number = 2000
 

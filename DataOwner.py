@@ -83,7 +83,7 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     # 发送代理伪随机密钥
     send_to_server((rk, pubX), CLOUD_SERVER_1_ADDRESS)
     send_to_server((rk, pubX), CLOUD_SERVER_2_ADDRESS)
-    send_to_server(proxy_pseudorandom_key, CLIENT_ADDRESS)
+    send_to_server((proxy_pseudorandom_key, proxy_pseudorandom_do_pub), CLIENT_ADDRESS)
 
     # 发送通用重加密密钥
     send_to_server(ure, CLOUD_SERVER_1_ADDRESS)

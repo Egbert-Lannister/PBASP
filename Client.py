@@ -42,9 +42,10 @@ def main():
         with conn:
             data = receive_data(conn)
             if data:
-                proxy_pseudorandom_key = data
+                proxy_pseudorandom_key, proxy_pseudorandom_do_pub = data
                 print("收到以下数据：")
                 print(f"Client 收到 proxy_pseudorandom_key :{proxy_pseudorandom_key}")
+                print(f"Client 收到 proxy_pseudorandom_do_pub :{proxy_pseudorandom_do_pub}")
 
         # 接收通用重加密密钥
         conn, addr = s.accept()
@@ -127,9 +128,16 @@ def main():
         keyword_query_result_AND = BitMap.bitmaps_logical_operation(decrypted_keyword_query_result, "AND")
         position_query_result_OR = BitMap.bitmaps_logical_operation(decrypted_position_query_result, "OR")
 
+        print(keyword_query_result_AND)
+        print(position_query_result_OR)
+
         query_result = BitMap.bitmaps_logical_operation([keyword_query_result_AND, position_query_result_OR], "AND")
 
+        print(query_result)
+
         result = query_result.get_set_bits()
+
+        print(result)
 
         print(f"查询到的对象ID是{bitmap_map_2_object_map[result[0]]}")
 
@@ -192,6 +200,11 @@ def main():
         # 发送给两个服务器
         send_to_server((encrypted_update_keyword_query_result_1, encrypted_update_position_query_result_1), CLOUD_SERVER_1_ADDRESS)
         send_to_server((encrypted_update_keyword_query_result_2, encrypted_update_position_query_result_2), CLOUD_SERVER_2_ADDRESS)
+
+        # 数据更新完毕
+        print("------------------------更新完毕------------------------")
+
+        # 添加新对象
 
         # 添加一个新的数据对象
         new_object = [("Dumpling", "Hot pot"), (39.954370,116.346740)]
