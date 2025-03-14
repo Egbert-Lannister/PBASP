@@ -183,3 +183,58 @@ if __name__ == "__main__":
     bmp_restored = bmp1.or_operation(bmp2)
     print(f"OR 之后的位图: {bmp_restored}")
 
+    restored = bmp1.or_operation(bmp2)
+    print(f"OR还原后: {restored}")
+
+    # 测试不同长度位图的逻辑运算
+    bm1 = BitMap.from_string("110")
+    bm2 = BitMap.from_string("10101")
+    or_result = bm1.or_operation(bm2)
+    print(f"OR结果: {or_result}")  # 应输出11101
+
+    bm3 = BitMap.from_string("10001010")
+    bm4 = BitMap.from_string("101001010")
+    and_result = bm3.and_operation(bm4)
+    print(f"AND结果：: {and_result}")
+
+    print("\n测试自动trim功能:")
+    bm1 = BitMap.from_string("10100000")  # 原size=8
+    bm1.trim()
+    print(f"trim后: {bm1} 长度: {bm1.size}")  # 应输出101长度3
+
+    bm2 = BitMap.from_string("00100000")  # trim后应为001长度3
+    xor_res = bm1.xor_operation(bm2)
+    print(f"异或结果: {xor_res} 长度: {xor_res.size}")  # 应输出100长度3
+
+    # 测试逻辑操作
+    print("\n测试多个位图的OR操作:")
+    bm_list = [
+        BitMap.from_string("1001"),
+        BitMap.from_string("1010"),
+        BitMap.from_string("100000")
+    ]
+    or_result = BitMap.bitmaps_logical_operation(bm_list, "OR")
+    print(f"OR结果: {or_result} 长度: {or_result.size}")  # 应输出111001（长度6）
+
+    print("\n测试多个位图的AND操作:")
+    bm_list = [
+        BitMap.from_string("111100"),
+        BitMap.from_string("110011"),
+        BitMap.from_string("110000")
+    ]
+    and_result = BitMap.bitmaps_logical_operation(bm_list, "AND")
+    print(f"AND结果: {and_result} 长度: {and_result.size}")  # 应输出11（长度6）
+
+    print("\n测试全零情况:")
+    bm_list = [
+        BitMap.from_string("0000"),
+        BitMap.from_string("0000")
+    ]
+    zero_result = BitMap.bitmaps_logical_operation(bm_list, "AND")
+    print(f"全零结果: {zero_result} 长度: {zero_result.size}")  # 应输出空（长度0）
+
+    print("\n测试自动trim功能:")
+    bm1 = BitMap.from_string("10000000")
+    bm2 = BitMap.from_string("00100000")
+    xor_res = bm1.xor_operation(bm2)
+    print(f"异或结果: {xor_res} 长度: {xor_res.size}")  # 应输出10100000 → trim后101（长度3）
