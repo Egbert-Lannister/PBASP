@@ -133,6 +133,69 @@ def main():
 
         print(f"查询到的对象ID是{bitmap_map_2_object_map[result[0]]}")
 
+        # 创建标志文件，查询结束锁
+        with open("query_done.lock", "w") as f:
+            f.write("Client Query completed")
+
+        # 数据更新
+        print("------------------------数据更新------------------------")
+
+        decrypted_keyword_query_result = {}
+        decrypted_position_query_result = {}
+
+        for key, value in decrypted_keyword_query_result_1.items():
+            decrypted_keyword_query_result[key] = BitMap.logical_operation(decrypted_keyword_query_result_1[key], decrypted_keyword_query_result_2[key], "OR")
+
+        for key, value in decrypted_position_query_result_1.items():
+            decrypted_position_query_result[key] = BitMap.logical_operation(decrypted_position_query_result_1[key], decrypted_position_query_result_2[key], "OR")
+
+        # DataOwner 方案
+        # send_to_server((decrypted_keyword_query_result, decrypted_position_query_result), DataOwner)
+
+        update_keyword_query_result_1 = {}
+        update_position_query_result_1 = {}
+        update_keyword_query_result_2 = {}
+        update_position_query_result_2 = {}
+
+        for key, value in decrypted_keyword_query_result.items():
+            update_keyword_query_result_1[key], update_keyword_query_result_2[key] = decrypted_keyword_query_result[key].bitmap_or_separation()
+
+        for key, value in decrypted_position_query_result.items():
+            update_position_query_result_1[key], update_position_query_result_2[key] = decrypted_position_query_result[key].bitmap_or_separation()
+
+        encrypted_update_keyword_query_result_1 = {}
+        encrypted_update_position_query_result_1 = {}
+        encrypted_update_keyword_query_result_2 = {}
+        encrypted_update_position_query_result_2 = {}
+
+        # 加密
+        for key, value in update_keyword_query_result_1.items():
+            cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
+            encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
+            encrypted_update_keyword_query_result_1[cipher_text] = [capsule, encrypted_ciphertexts]
+
+        for key, value in update_position_query_result_1.items():
+            cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
+            encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
+            encrypted_update_position_query_result_1[cipher_text] = [capsule, encrypted_ciphertexts]
+
+        for key, value in update_keyword_query_result_2.items():
+            cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
+            encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
+            encrypted_update_keyword_query_result_2[cipher_text] = [capsule, encrypted_ciphertexts]
+
+        for key, value in update_position_query_result_2.items():
+            cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
+            encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
+            encrypted_update_position_query_result_2[cipher_text] = [capsule, encrypted_ciphertexts]
+
+        # 发送给两个服务器
+        send_to_server((encrypted_update_keyword_query_result_1, encrypted_update_position_query_result_1), CLOUD_SERVER_1_ADDRESS)
+        send_to_server((encrypted_update_keyword_query_result_2, encrypted_update_position_query_result_2), CLOUD_SERVER_2_ADDRESS)
+
+        # 添加一个新的数据对象
+        new_object = [("Dumpling", "Hot pot"), (39.954370,116.346740)]
+
 
 
 
