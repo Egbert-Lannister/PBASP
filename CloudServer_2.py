@@ -22,7 +22,6 @@ def main():
     CLIENT_ADDRESS = (HOST, client_PORT)  # Client 客户端的地址
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((HOST, cs2_PORT))
         s.listen()
         print(f"CloudServer_2 已启动，监听端口 {cs2_PORT}...")
@@ -150,7 +149,7 @@ def main():
                     init_token = qt_keyword.decode("utf-8")
                     # 遍历加密关键字索引，寻找匹配项
                     found = False
-                    for encrypted_keyword,  (capsule, encrypted_bitmap) in re_encrypted_keyword_index_2_2nd.items():
+                    for encrypted_keyword,  (capsule, encrypted_bitmap, capacity) in re_encrypted_keyword_index_2_2nd.items():
                         # 获取重加密次数
                         count = capsule.get("count", 0)
                         # 对客户端原始令牌转换 count 次
@@ -168,7 +167,7 @@ def main():
                     init_token = qt_prefix_code.decode("utf-8")
                     # 遍历加密关键字索引，寻找匹配项
                     found = False
-                    for encrypted_prefix_code,  (capsule, encrypted_bitmap) in re_encrypted_position_index_2_2nd.items():
+                    for encrypted_prefix_code,  (capsule, encrypted_bitmap, capacity) in re_encrypted_position_index_2_2nd.items():
                         # 获取重加密次数
                         count = capsule.get("count", 0)
                         # 对客户端原始令牌转换 count 次

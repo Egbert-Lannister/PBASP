@@ -25,7 +25,6 @@ def main():
     CLIENT_ADDRESS = (HOST, client_PORT)  # Client 客户端的地址
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((HOST, cs1_PORT))
         s.listen()
         print(f"CloudServer_1 已启动，监听端口 {cs1_PORT}...")
@@ -60,8 +59,8 @@ def main():
                 print(f"Cloud Server 1 收到 encrypted_keyword_index_1, 共有 {len(encrypted_keyword_index_1)}条")
                 print(f"Cloud Server 1 收到 encrypted_position_index_1， 共有{len(encrypted_position_index_1)}条")
 
-                # 等待 DataOwner 完成
-                wait_for_lock_file("dataowner_done.lock")
+                # # 等待 DataOwner 完成
+                # wait_for_lock_file("dataowner_done.lock")
 
                 send_to_server((encrypted_keyword_index_1, encrypted_position_index_1), CLOUD_SERVER_2_ADDRESS)
 
@@ -125,8 +124,6 @@ def main():
 
                     re_encrypted_keyword_index_1_2nd[keyword] = [new_capsule, re_encrypted_bitmap, capacity]
 
-
-
                 # 进行重加密
                 for position, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_position_index_1_1st.items(), desc="2nd Re-Encrypting the position index 1...", total=len(re_encrypted_position_index_1_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
@@ -156,7 +153,7 @@ def main():
                     init_token = qt_keyword.decode("utf-8")
                     # 遍历加密关键字索引，寻找匹配项
                     found = False
-                    for encrypted_keyword,  (capsule, encrypted_bitmap) in re_encrypted_keyword_index_1_2nd.items():
+                    for encrypted_keyword, (capsule, encrypted_bitmap, capacity) in re_encrypted_keyword_index_1_2nd.items():
                         # 获取重加密次数
                         count = capsule.get("count", 0)
                         # 对客户端原始令牌转换 count 次
@@ -174,7 +171,7 @@ def main():
                     init_token = qt_prefix_code.decode("utf-8")
                     # 遍历加密关键字索引，寻找匹配项
                     found = False
-                    for encrypted_prefix_code,  (capsule, encrypted_bitmap) in re_encrypted_position_index_1_2nd.items():
+                    for encrypted_prefix_code, (capsule, encrypted_bitmap, capacity) in re_encrypted_position_index_1_2nd.items():
                         # 获取重加密次数
                         count = capsule.get("count", 0)
                         # 对客户端原始令牌转换 count 次
@@ -226,7 +223,7 @@ def main():
                 encrypted_update_data_index = data
 
                 capacity_num = 2001
-                for business_ID, (encrypted_additional_object_keywords_list, encrypted_additional_object_prefix_code_list) in tqdm(encrypted_update_data_index.item(), desc="Adding data...", total=len(encrypted_update_data_index)):
+                for business_ID, (encrypted_additional_object_keywords_list, encrypted_additional_object_prefix_code_list) in tqdm(encrypted_update_data_index.items(), desc="Adding data...", total=len(encrypted_update_data_index)):
 
                     # 针对这个对象的所有关键词
                     for encrypted_additional_object_keyword in encrypted_additional_object_keywords_list:
