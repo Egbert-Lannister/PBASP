@@ -211,6 +211,68 @@ def main():
                 for key, value in encrypted_update_position_query_result_1.items():
                     re_encrypted_position_index_1_2nd[key] = value
 
+        # 创建标志文件，通知 Client 查询结束的数据更新已完成
+        with open("CloudServer_1_update_done.lock", "w") as f:
+            f.write("CloudServer_1_update_done")
+
+        # 接收新添加的对象
+        conn, addr = s.accept()
+        with conn:
+            print(f"连接来自 {addr}")
+            data = receive_data(conn)
+            if data:
+                encrypted_update_data_index = data
+
+                capacity_num = 2001
+                for business_ID, (encrypted_additional_object_keywords_list, encrypted_additional_object_prefix_code_list) in tqdm(encrypted_update_data_index.item(), desc="Adding data...", total=len(encrypted_update_data_index)):
+
+                    # 针对这个对象的所有关键词
+                    for encrypted_additional_object_keyword in encrypted_additional_object_keywords_list:
+
+                        (cipher_text, capsule_origin) = encrypted_additional_object_keyword
+                        # 查找这个关键字之前存没存过
+                        init_token = cipher_text.decode("utf-8")
+                        found = False
+                        for encrypted_keyword, (capsule, encrypted_bitmap, capacity) in re_encrypted_keyword_index_1_2nd.items():
+                            # 获取重加密次数
+                            count = capsule.get("count", 0)
+                            # 对客户端原始令牌转换 count 次
+                            transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
+                            # 与存储在 capsule 中的 tag 比较
+                            if transformed_token == capsule["tag"]:
+                                encrypted_bitmap.add_object(has_keyword=True)
+                                found = True
+                                break
+                        if not found:
+                            bitmap = BitMap(capacity=capacity_num)
+                            encrypted_bitmap = ure.encrypt_bitmap(bitmap)
+                            re_encrypted_keyword_index_1_2nd[encrypted_keyword] = [encrypted_bitmap, encrypted_bitmap, capacity]
+
+                    for encrypted_additional_object_prefix_code in encrypted_additional_object_prefix_code_list:
+
+                        (cipher_text, capsule_origin) = encrypted_additional_object_prefix_code
+                        # 查找时用 key 以 bytes 形式存储，故先转换为字符串
+                        init_token = cipher_text.decode("utf-8")
+                        # 遍历加密关键字索引，寻找匹配项
+                        found = False
+                        for encrypted_prefix_code, (capsule, encrypted_bitmap) in re_encrypted_position_index_1_2nd.items():
+                            # 获取重加密次数
+                            count = capsule.get("count", 0)
+                            # 对客户端原始令牌转换 count 次
+                            transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
+                            # 与存储在 capsule 中的 tag 比较
+                            if transformed_token == capsule["tag"]:
+                                encrypted_bitmap.add_object(has_keyword=True)
+                                found = True
+                                break
+                        if not found:
+                            bitmap = BitMap(capacity=capacity_num)
+                            encrypted_bitmap = ure.encrypt_bitmap(bitmap)
+                            re_encrypted_position_index_1_2nd[encrypted_keyword] = [encrypted_bitmap, encrypted_bitmap, capacity]
+                    capacity_num+=1
+
+                print("------------------------添加完成------------------------")
+
 
 
 if __name__ == "__main__":
