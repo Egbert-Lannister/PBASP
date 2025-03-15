@@ -8,6 +8,8 @@ class BitMap:
         self.bits_per_int = 32  # 假设每个整数是32位
         self.int_size = (size + self.bits_per_int - 1) // self.bits_per_int
         self.arr = [0] * self.int_size if self.int_size > 0 else []
+        # 新增 capacity 属性
+        self.capacity = capacity if capacity is not None else size
 
     def set_bit(self, bit_index):
         """设置指定位为1，必要时扩展位图"""
