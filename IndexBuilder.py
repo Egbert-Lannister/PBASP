@@ -50,7 +50,7 @@ class IndexBuilder:
 
         # 为每个关键字创建 BitMap
         for keyword in keywords_list:
-            self.keyword_index[keyword] = BitMap(self.num_businesses)
+            self.keyword_index[keyword] = BitMap(capacity=self.num_businesses)
 
         # 遍历每一行数据，设置相应关键字的 BitMap 对应位置为1
         for i, row in enumerate(self.rows):
@@ -156,7 +156,7 @@ class IndexBuilder:
             for code in prefix_codes:
                 if code not in prefix_codes_list:
                     prefix_codes_list.append(code)
-                    self.position_index[code] = BitMap(self.num_businesses)
+                    self.position_index[code] = BitMap(capacity=self.num_businesses)
 
         # 第二次遍历：根据每行的经纬度设置对应前缀码的位
         for i, row in enumerate(self.rows):

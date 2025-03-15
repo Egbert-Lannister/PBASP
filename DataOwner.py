@@ -1,15 +1,17 @@
+import os
 import sqlite3
 import time
 import socket
 import pickle
 import sys
+
 sys.path.append(r"D:\Python_Script\PBASP\UniversalReEncryption")
 
 
 from tqdm import tqdm
 # from universal_re_encryption import ElGamal, encrypt_bitmap
 
-from utils import receive_data, send_to_server
+from utils import receive_data, send_to_server, read_data
 from IndexBuilder import IndexBuilder
 from encryption import ProxyPseudorandom# , UniversalReEncryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
@@ -25,20 +27,9 @@ CLOUD_SERVER_1_ADDRESS = (HOST, cs1_PORT)  # CloudServer_1 的地址
 CLOUD_SERVER_2_ADDRESS = (HOST, cs2_PORT)  # CloudServer_2 的地址
 CLIENT_ADDRESS = (HOST, client_PORT)  # Client 客户端的地址
 
-def read_data(db_path):
-    """
-    从 SQLite 数据库中读取数据，并返回所有行记录
-    """
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM business_table")
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
-
 def index_building(rows):
     # 创建 IndexBuilder 实例并构建关键字索引和位置索引
-    index_builder = IndexBuilder(rows)
+    index_builder = IndexBuilder(rows, num_businesses=2000)
 
     bitmap_map_2_object_map = index_builder.build_bitmap_map_2_object()
 
@@ -146,18 +137,22 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
         cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
         # print("关键词密文:", cipher_text.hex())
 
+        # 存储位图尺寸
+        capacity = value.capacity
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
-        encrypted_keyword_index_1[cipher_text] = [capsule, encrypted_ciphertexts]
+        encrypted_keyword_index_1[cipher_text] = [capsule, encrypted_ciphertexts, capacity]
 
     for key, value in tqdm(keyword_index_2.items(), desc="Encrypting the keyword index 2...", total=len(keyword_index_2)):
         cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="position", search_key=proxy_pseudorandom_key)
 
+        # 存储位图尺寸
+        capacity = value.capacity
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
-        encrypted_keyword_index_2[cipher_text] = [capsule, encrypted_ciphertexts]
+        encrypted_keyword_index_2[cipher_text] = [capsule, encrypted_ciphertexts, capacity]
 
     # 记录结束时间
     end_time_1 = time.time()
@@ -173,18 +168,25 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
     for key, value in tqdm(position_index_1.items(), desc="Encrypting the position index 1...", total=len(position_index_1)):
         cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
 
+        # 存储位图尺寸
+        capacity = value.capacity
+
+        # print(capacity)
+
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
-        encrypted_position_index_1[cipher_text] = [capsule, encrypted_ciphertexts]
+        encrypted_position_index_1[cipher_text] = [capsule, encrypted_ciphertexts, capacity]
 
     for key, value in tqdm(position_index_2.items(), desc="Encrypting the position index 2...", total=len(position_index_2)):
         cipher_text, capsule = ProxyPseudorandom.encrypt(key, proxy_pseudorandom_do_pub, mode="position", search_key=proxy_pseudorandom_key)
 
+        # 存储位图尺寸
+        capacity = value.capacity
         # 位图加密
         encrypted_ciphertexts = ure.encrypt_bitmap(str(value))
 
-        encrypted_position_index_2[cipher_text] = [capsule, encrypted_ciphertexts]
+        encrypted_position_index_2[cipher_text] = [capsule, encrypted_ciphertexts, capacity]
 
     # 记录结束时间
     end_time_2 = time.time()
@@ -197,23 +199,20 @@ def data_encryption(keyword_index_1, keyword_index_2, position_index_1, position
 
 
 if __name__ == "__main__":
-    db_path = 'data_object_2000_keyword_100.db'
+    origin_db_path = 'data_object_2000_keyword_100.db'
 
     # 开始建索引
-    keyword_index_1, keyword_index_2, position_index_1, position_index_2 = index_building(read_data(db_path))
+    keyword_index_1, keyword_index_2, position_index_1, position_index_2 = index_building(read_data(origin_db_path))
     # 建索引结束
 
     # 开始加密
     encrypted_keyword_index_1, encrypted_keyword_index_2, encrypted_position_index_1, encrypted_position_index_2 = data_encryption(keyword_index_1, keyword_index_2, position_index_1, position_index_2)
     # 加密结束
 
-    # 传递给服务器
-
     # 发送数据到服务器
     send_to_server((encrypted_keyword_index_1, encrypted_position_index_1), CLOUD_SERVER_1_ADDRESS)
     send_to_server((encrypted_keyword_index_2, encrypted_position_index_2), CLOUD_SERVER_2_ADDRESS)
 
     # 创建标志文件，通知其他进程 DataOwner 已完成
-    with open("dataowner_done.lock", "w") as f:
+    with open("data owner_done.lock", "w") as f:
         f.write("DataOwner completed")
-

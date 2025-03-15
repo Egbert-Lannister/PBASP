@@ -3,10 +3,13 @@ import socket
 import pickle
 import time
 
+from tqdm import tqdm
+
 from BitMap import BitMap
 from IndexBuilder import IndexBuilder
 from encryption import ProxyPseudorandom
-from utils import receive_data, send_to_server
+from utils import receive_data, send_to_server, read_data
+
 
 def main():
     HOST = 'localhost'
@@ -26,6 +29,7 @@ def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, client_PORT))
         s.listen()
+        s.settimeout(10)  # 设置10秒超时
         print(f"Client 已启动，监听端口 {client_PORT}...")
 
         # 接收位图对象ID映射

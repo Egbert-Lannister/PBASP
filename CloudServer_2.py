@@ -22,6 +22,7 @@ def main():
     CLIENT_ADDRESS = (HOST, client_PORT)  # Client 客户端的地址
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((HOST, cs2_PORT))
         s.listen()
         print(f"CloudServer_2 已启动，监听端口 {cs2_PORT}...")
@@ -74,20 +75,20 @@ def main():
 
 
                 # 进行重加密
-                for keyword, (capsule, encrypted_bitmap) in tqdm(encrypted_keyword_index_1.items(), desc="1st Re-Encrypting the keyword index 1...", total=len(encrypted_keyword_index_1)):
+                for keyword, (capsule, encrypted_bitmap, capacity) in tqdm(encrypted_keyword_index_1.items(), desc="1st Re-Encrypting the keyword index 1...", total=len(encrypted_keyword_index_1)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_keyword_index_1_1st[keyword] = [new_capsule, re_encrypted_bitmap]
+                    re_encrypted_keyword_index_1_1st[keyword] = [new_capsule, re_encrypted_bitmap, capacity]
 
                 # 进行重加密
-                for position, (capsule, encrypted_bitmap) in tqdm(encrypted_position_index_1.items(), desc="1st Re-Encrypting the position index 1...", total=len(encrypted_keyword_index_1)):
+                for position, (capsule, encrypted_bitmap, capacity) in tqdm(encrypted_position_index_1.items(), desc="1st Re-Encrypting the position index 1...", total=len(encrypted_keyword_index_1)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_position_index_1_1st[position] = [new_capsule, re_encrypted_bitmap]
+                    re_encrypted_position_index_1_1st[position] = [new_capsule, re_encrypted_bitmap, capacity]
 
                 send_to_server((re_encrypted_keyword_index_1_1st, re_encrypted_position_index_1_1st), CLOUD_SERVER_1_ADDRESS)
 
@@ -113,20 +114,20 @@ def main():
                 re_encrypted_position_index_2_2nd = {}
 
                 # 进行重加密
-                for keyword, (capsule, encrypted_bitmap) in tqdm(re_encrypted_keyword_index_2_1st.items(), desc="2nd Re-Encrypting the keyword index 2...", total=len(re_encrypted_keyword_index_2_1st)):
+                for keyword, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_keyword_index_2_1st.items(), desc="2nd Re-Encrypting the keyword index 2...", total=len(re_encrypted_keyword_index_2_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_keyword_index_2_2nd[keyword] = [new_capsule, re_encrypted_bitmap]
+                    re_encrypted_keyword_index_2_2nd[keyword] = [new_capsule, re_encrypted_bitmap, capacity]
 
                 # 进行重加密
-                for position, (capsule, encrypted_bitmap) in tqdm(re_encrypted_position_index_2_1st.items(), desc="2nd Re-Encrypting the position index 2...", total=len(re_encrypted_position_index_2_1st)):
+                for position, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_position_index_2_1st.items(), desc="2nd Re-Encrypting the position index 2...", total=len(re_encrypted_position_index_2_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_position_index_2_2nd[position] = [new_capsule, re_encrypted_bitmap]
+                    re_encrypted_position_index_2_2nd[position] = [new_capsule, re_encrypted_bitmap, capacity]
 
         # 创建标志文件，通知 Client 重加密完成
         with open("CloudServer_2_reencryption_done.lock", "w") as f:
@@ -206,6 +207,11 @@ def main():
 
                 for key, value in encrypted_update_position_query_result_2.items():
                     re_encrypted_position_index_2_2nd[key] = value
+
+        # 创建标志文件，通知 Client 查询结束的数据更新已完成
+        with open("CloudServer_2_update_done.lock", "w") as f:
+            f.write("CloudServer_2_update_done")
+
 
 
 

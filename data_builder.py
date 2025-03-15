@@ -7,7 +7,6 @@ from tqdm import tqdm
 """
 基本实现了相关的功能
 现在还缺乏的是，为了方便查询集对应，在后续产生更大规模的数据库时要注意关键字从第一次生成的小规模的数据库中产生
-还有关键字读取过程中的去重功能
 """
 
 # 设置读取对象个数
@@ -69,12 +68,21 @@ with open(json_file_path, 'r', encoding='utf-8') as file:
                 # keyword_set 个数少于100， 继续从中选取
                 if len(categories) >= 2:
                     selected = random.sample(categories, 2)
-                    keyword_set.extend(selected)
                 else:
                     selected = categories
-                    keyword_set.extend(selected) if selected else None
-                selected_category = ', '.join(selected)
 
+                # 去重并加入keyword_set
+                for keyword in selected:
+                    if len(keyword_set) >= keyword_set_num:
+                        break
+                    if keyword not in keyword_set:
+                        keyword_set.append(keyword)
+
+                # 如果keyword_set已达到要求数量，从中随机选取2个关键词；否则使用selected中的关键词
+                if len(keyword_set) >= keyword_set_num:
+                    selected_category = ', '.join(random.sample(keyword_set, 2))
+                else:
+                    selected_category = ', '.join(selected)
 
             # 插入数据
             cursor.execute(

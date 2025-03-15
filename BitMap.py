@@ -2,8 +2,8 @@ import random
 
 
 class BitMap:
-    def __init__(self, size=0):
-        """初始化位图，可指定初始大小，默认为0"""
+    def __init__(self, size=0, capacity=None):
+        """初始化位图，可指定初始大小，默认为0；同时可指定位图代表的对象总数 capacity，默认为 size"""
         self.size = size
         self.bits_per_int = 32  # 假设每个整数是32位
         self.int_size = (size + self.bits_per_int - 1) // self.bits_per_int
@@ -48,7 +48,7 @@ class BitMap:
         return (self.arr[integer_index] & (1 << bit_offset)) != 0
 
     def __str__(self):
-        """返回位图的字符串表示"""
+        """返回位图的字符串表示（仅包含实际有效位，不输出 capacity 后的0）"""
         result = []
         for i in range(self.size):
             result.append('1' if self.check_bit(i) else '0')
@@ -87,52 +87,26 @@ class BitMap:
 
         self.size = new_size
         self.int_size = new_int_size
+        # trim 不改变 capacity，因为 capacity 表示实际对象总数
 
     @staticmethod
-    def from_string(bit_str):
+    def from_string(bit_str, capacity=None):
         """
         根据位图的字符串表示（如 "100000001"）创建一个 BitMap 对象
+        如果指定了 capacity，则使用该值，否则默认 capacity 为 bit_str 的长度
         """
-        bm = BitMap(len(bit_str))
+        bm = BitMap(len(bit_str), capacity if capacity is not None else len(bit_str))
         for idx, ch in enumerate(bit_str):
             if ch == "1":
                 bm.set_bit(idx)
         return bm
 
-    # @staticmethod
-    # def logical_operation(bitmap1, bitmap2, operator):
-    #     """
-    #     对两个位图执行逻辑运算
-    #     :param bitmap1: 第一个位图
-    #     :param bitmap2: 第二个位图
-    #     :param operator: 运算符 ("AND", "OR", "XOR")
-    #     :return: 新的位图
-    #     """
-    #     if bitmap1.size != bitmap2.size:
-    #         raise ValueError("位图大小不一致，无法进行逻辑运算")
-    #
-    #     result = BitMap(bitmap1.size)
-    #     op = None
-    #     if operator == "AND":
-    #         op = lambda a, b: a & b
-    #     elif operator == "OR":
-    #         op = lambda a, b: a | b
-    #     elif operator == "XOR":
-    #         op = lambda a, b: a ^ b
-    #     else:
-    #         raise ValueError("不支持的运算符")
-    #
-    #     # 遍历每个整数的位置，进行逻辑运算
-    #     for i in range(bitmap1.int_size):
-    #         result.arr[i] = op(bitmap1.arr[i], bitmap2.arr[i])
-    #
-    #     return result
-
     @staticmethod
     def logical_operation(bitmap1, bitmap2, operator):
         """对两个位图执行逻辑运算，自动处理不同长度"""
         max_size = max(bitmap1.size, bitmap2.size)
-        result = BitMap(max_size)
+        # 结果位图的 capacity 取两个位图中较大的 capacity
+        result = BitMap(max_size, max(bitmap1.capacity, bitmap2.capacity))
         for i in range(max_size):
             bit1 = bitmap1.check_bit(i) if i < bitmap1.size else False
             bit2 = bitmap2.check_bit(i) if i < bitmap2.size else False
@@ -239,7 +213,7 @@ class BitMap:
 # --------------------- 示例调用 ---------------------
 if __name__ == "__main__":
 
-    bmp = BitMap(9)
+    bmp = BitMap(capacity=9)
     print(f"初始位图: {bmp}")  # 输出：000000000
     bmp.set_bit(0)
     print(f"设置位 0 后: {bmp}")  # 输出：100000000
@@ -258,57 +232,57 @@ if __name__ == "__main__":
     print(f"OR还原后: {restored}")
 
     # 测试不同长度位图的逻辑运算
-    bm1 = BitMap.from_string("110")
-    bm2 = BitMap.from_string("10101")
+    bm1 = BitMap.from_string("110", capacity=5)
+    bm2 = BitMap.from_string("10101", capacity=5)
     or_result = bm1.or_operation(bm2)
-    print(f"OR结果: {or_result}")  # 应输出11101
+    print(f"OR结果: {or_result}")  # 应输出 11101
 
-    bm3 = BitMap.from_string("10001010")
-    bm4 = BitMap.from_string("101001010")
+    bm3 = BitMap.from_string("10001010", capacity=9)
+    bm4 = BitMap.from_string("101001010", capacity=9)
     and_result = bm3.and_operation(bm4)
     print(f"AND结果：: {and_result}")
 
     print("\n测试自动trim功能:")
-    bm1 = BitMap.from_string("10100000")  # 原size=8
+    bm1 = BitMap.from_string("10100000", capacity=8)  # 原 size=8
     bm1.trim()
-    print(f"trim后: {bm1} 长度: {bm1.size}")  # 应输出101长度3
+    print(f"trim后: {bm1} 长度: {bm1.size}")  # 应输出 101，长度 3
 
-    bm2 = BitMap.from_string("00100000")  # trim后应为001长度3
+    bm2 = BitMap.from_string("00100000", capacity=8)  # trim 后应为 001，长度 3
     xor_res = bm1.xor_operation(bm2)
-    print(f"异或结果: {xor_res} 长度: {xor_res.size}")  # 应输出100长度3
+    print(f"异或结果: {xor_res} 长度: {xor_res.size}")  # 应输出 100，长度 3
 
     # 测试逻辑操作
     print("\n测试多个位图的OR操作:")
     bm_list = [
-        BitMap.from_string("1001"),
-        BitMap.from_string("1010"),
-        BitMap.from_string("100000")
+        BitMap.from_string("1001", capacity=6),
+        BitMap.from_string("1010", capacity=6),
+        BitMap.from_string("100000", capacity=6)
     ]
     or_result = BitMap.bitmaps_logical_operation(bm_list, "OR")
-    print(f"OR结果: {or_result} 长度: {or_result.size}")  # 应输出111001（长度6）
+    print(f"OR结果: {or_result} 长度: {or_result.size}")  # 应输出 111001（长度6）
 
     print("\n测试多个位图的AND操作:")
     bm_list = [
-        BitMap.from_string("111100"),
-        BitMap.from_string("110011"),
-        BitMap.from_string("110000")
+        BitMap.from_string("111100", capacity=6),
+        BitMap.from_string("110011", capacity=6),
+        BitMap.from_string("110000", capacity=6)
     ]
     and_result = BitMap.bitmaps_logical_operation(bm_list, "AND")
-    print(f"AND结果: {and_result} 长度: {and_result.size}")  # 应输出11（长度6）
+    print(f"AND结果: {and_result} 长度: {and_result.size}")  # 应输出 11（长度6）
 
     print("\n测试全零情况:")
     bm_list = [
-        BitMap.from_string("0000"),
-        BitMap.from_string("0000")
+        BitMap.from_string("0000", capacity=4),
+        BitMap.from_string("0000", capacity=4)
     ]
     zero_result = BitMap.bitmaps_logical_operation(bm_list, "AND")
     print(f"全零结果: {zero_result} 长度: {zero_result.size}")  # 应输出空（长度0）
 
     print("\n测试自动trim功能:")
-    bm1 = BitMap.from_string("10000000")
-    bm2 = BitMap.from_string("00100000")
+    bm1 = BitMap.from_string("10000000", capacity=8)
+    bm2 = BitMap.from_string("00100000", capacity=8)
     xor_res = bm1.xor_operation(bm2)
-    print(f"异或结果: {xor_res} 长度: {xor_res.size}")  # 应输出10100000 → trim后101（长度3）
+    print(f"异或结果: {xor_res} 长度: {xor_res.size}")  # 应输出 10100000 → trim 后 101（长度3）
 
     # 测试新增的 add_object 方法
     print("\n测试新增对象操作:")

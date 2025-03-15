@@ -5,6 +5,8 @@ import time
 
 from tqdm import tqdm
 
+from BitMap import BitMap
+from ProcessController import wait_for_lock_file
 from encryption import ProxyPseudorandom, UniversalReEncryption
 # from test_proxy import capsule
 from utils import receive_data, send_to_server, re_encrypt_data
@@ -23,6 +25,7 @@ def main():
     CLIENT_ADDRESS = (HOST, client_PORT)  # Client 客户端的地址
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((HOST, cs1_PORT))
         s.listen()
         print(f"CloudServer_1 已启动，监听端口 {cs1_PORT}...")
@@ -47,10 +50,6 @@ def main():
                 print("收到以下数据：")
                 print(f"Cloud Server 1 收到 ure :{ure}")
 
-        # 等待 DataOwner 完成
-        while not os.path.exists("dataowner_done.lock"):
-            time.sleep(1)
-
         conn, addr = s.accept()
         with conn:
             print(f"连接来自 {addr}")
@@ -60,6 +59,9 @@ def main():
                 print("Cloud Server 1 收到以下数据：")
                 print(f"Cloud Server 1 收到 encrypted_keyword_index_1, 共有 {len(encrypted_keyword_index_1)}条")
                 print(f"Cloud Server 1 收到 encrypted_position_index_1， 共有{len(encrypted_position_index_1)}条")
+
+                # 等待 DataOwner 完成
+                wait_for_lock_file("dataowner_done.lock")
 
                 send_to_server((encrypted_keyword_index_1, encrypted_position_index_1), CLOUD_SERVER_2_ADDRESS)
 
@@ -76,21 +78,21 @@ def main():
                 re_encrypted_keyword_index_2_1st = {}
                 re_encrypted_position_index_2_1st = {}
 
-                for keyword, (capsule, encrypted_bitmap) in tqdm(encrypted_keyword_index_2.items(), desc="1st Re-Encrypting the keyword index 2...", total=len(encrypted_keyword_index_2)):
+                for keyword, (capsule, encrypted_bitmap, capacity) in tqdm(encrypted_keyword_index_2.items(), desc="1st Re-Encrypting the keyword index 2...", total=len(encrypted_keyword_index_2)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_keyword_index_2_1st[keyword] = [new_capsule, re_encrypted_bitmap]
+                    re_encrypted_keyword_index_2_1st[keyword] = [new_capsule, re_encrypted_bitmap, capacity]
 
 
                 # 进行重加密
-                for position, (capsule, encrypted_bitmap) in tqdm(encrypted_position_index_2.items(), desc="1st Re-Encrypting the position index 2...", total=len(encrypted_position_index_2)):
+                for position, (capsule, encrypted_bitmap, capacity) in tqdm(encrypted_position_index_2.items(), desc="1st Re-Encrypting the position index 2...", total=len(encrypted_position_index_2)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_position_index_2_1st[position] = [new_capsule, re_encrypted_bitmap]
+                    re_encrypted_position_index_2_1st[position] = [new_capsule, re_encrypted_bitmap, capacity]
 
                 send_to_server((re_encrypted_keyword_index_2_1st, re_encrypted_position_index_2_1st), CLOUD_SERVER_2_ADDRESS)
 
@@ -116,22 +118,22 @@ def main():
                 re_encrypted_position_index_1_2nd = {}
 
                 # 进行重加密
-                for keyword, (capsule, encrypted_bitmap) in tqdm(re_encrypted_keyword_index_1_1st.items(), desc="2nd Re-Encrypting the keyword index 1...", total=len(re_encrypted_keyword_index_1_1st)):
+                for keyword, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_keyword_index_1_1st.items(), desc="2nd Re-Encrypting the keyword index 1...", total=len(re_encrypted_keyword_index_1_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_keyword_index_1_2nd[keyword] = [new_capsule, re_encrypted_bitmap]
+                    re_encrypted_keyword_index_1_2nd[keyword] = [new_capsule, re_encrypted_bitmap, capacity]
 
 
 
                 # 进行重加密
-                for position, (capsule, encrypted_bitmap) in tqdm(re_encrypted_position_index_1_1st.items(), desc="2nd Re-Encrypting the position index 1...", total=len(re_encrypted_position_index_1_1st)):
+                for position, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_position_index_1_1st.items(), desc="2nd Re-Encrypting the position index 1...", total=len(re_encrypted_position_index_1_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
-                    re_encrypted_position_index_1_2nd[position] = [new_capsule, re_encrypted_bitmap]
+                    re_encrypted_position_index_1_2nd[position] = [new_capsule, re_encrypted_bitmap, capacity]
 
         # 创建标志文件，通知 Client 重加密完成
         with open("CloudServer_1_reencryption_done.lock", "w") as f:

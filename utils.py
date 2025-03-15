@@ -1,6 +1,8 @@
 import os
 import socket
 import pickle
+import sqlite3
+
 from tqdm import tqdm
 from encryption import ProxyPseudorandom, UniversalReEncryption
 
@@ -60,7 +62,7 @@ def delete_lock_files():
     lock_files = [
         "CloudServer_1_1st_reencryption_done.lock",
         "CloudServer_2_1st_reencryption_done.lock",
-        "dataowner_done.lock",
+        "data owner_done.lock",
         "CloudServer_1_reencryption_done.lock",
         "CloudServer_2_reencryption_done.lock",
         "query_done.lock"
@@ -69,3 +71,14 @@ def delete_lock_files():
         if os.path.exists(file):
             os.remove(file)
             print(f"已删除文件: {file}")
+
+def read_data(db_path):
+    """
+    从 SQLite 数据库中读取数据，并返回所有行记录
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM business_table")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
