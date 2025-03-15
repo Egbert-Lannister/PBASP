@@ -288,3 +288,12 @@ if __name__ == "__main__":
     bm2 = BitMap.from_string("00100000")
     xor_res = bm1.xor_operation(bm2)
     print(f"异或结果: {xor_res} 长度: {xor_res.size}")  # 应输出10100000 → trim后101（长度3）
+
+    # 测试新增的 add_object 方法
+    print("\n测试新增对象操作:")
+    bm = BitMap.from_string("101", capacity=5)
+    print(f"初始位图: {bm}, capacity: {bm.capacity}")  # 应输出 101, capacity=5
+    bm.add_object(has_keyword=True)  # 添加对象，且具备关键字
+    print(f"添加对象后: {bm}, capacity: {bm.capacity}")  # 应输出 101001, capacity=6
+    bm.add_object(has_keyword=False)  # 添加对象，不具备关键字
+    print(f"再添加对象后: {bm}, capacity: {bm.capacity}")  # 应输出仍为 101001, capacity=7
