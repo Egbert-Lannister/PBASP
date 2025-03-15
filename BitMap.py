@@ -25,6 +25,9 @@ class BitMap:
         integer_index = bit_index // self.bits_per_int
         bit_offset = bit_index % self.bits_per_int
         self.arr[integer_index] |= (1 << bit_offset)
+        # 如果设置位后 size 超过了原来的 capacity，则同步更新 capacity
+        if self.size > self.capacity:
+            self.capacity = self.size
 
     def clear_bit(self, bit_index):
         """清除指定位（设置为0），不扩展位图"""
