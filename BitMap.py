@@ -64,6 +64,7 @@ class BitMap:
         new_bm.size = self.size
         new_bm.int_size = self.int_size
         new_bm.arr = list(self.arr)  # 复制数组
+        new_bm.capacity = self.capacity  # 复制 capacity
         return new_bm
 
     def trim(self):
