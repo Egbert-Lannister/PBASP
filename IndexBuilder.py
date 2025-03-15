@@ -61,6 +61,24 @@ class IndexBuilder:
 
         return self.keyword_index
 
+    def build_update_data_index(self):
+
+        update_data_index = {}
+        for row in self.rows:
+            business_id = row[0]
+            business_id = business_id.strip()
+
+            row_keywords = row[3].split(', ') if row[3] else []
+
+            latitude = row[1]
+            longitude = row[2]
+            binary_str = self.lat_lon_to_hilbert_to_64bit_binary(latitude, longitude, self.n_bits)
+            prefix_codes = self.get_prefix_codes(binary_str)
+
+            update_data_index[business_id] = (row_keywords, prefix_codes)
+
+        return update_data_index
+
     @staticmethod
     def lat_lon_to_hilbert_to_64bit_binary(latitude, longitude, n_bits=16):
         """
