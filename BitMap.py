@@ -214,6 +214,21 @@ class BitMap:
                     bmp2.set_bit(i)
         return bmp1, bmp2
 
+    def add_object(self, has_keyword=False):
+        """
+        在位图中添加一个新对象：
+        - 将位图所代表的对象总数 capacity 增加1；
+        - 如果该对象具备关键字（has_keyword 为 True），则在对应位置置1，
+          同时更新有效位（size）；如果不具备关键字，则不改变已有有效位，
+          __str__ 方法输出时不会包含后面无意义的0。
+        """
+        new_index = self.capacity  # 新对象索引为当前 capacity
+        self.capacity += 1
+        if has_keyword:
+            self.set_bit(new_index)
+        # 如果对象不具有关键字，则不调用 set_bit，
+        # 这样 self.size 保持不变，__str__ 输出也只显示有效位
+
 
 # --------------------- 示例调用 ---------------------
 if __name__ == "__main__":
