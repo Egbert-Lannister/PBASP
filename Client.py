@@ -209,6 +209,45 @@ def main():
         # 添加一个新的数据对象
         new_object = [("Dumpling", "Hot pot"), (39.954370,116.346740)]
 
+        # 等待新数据
+        while not os.path.exists("CloudServer_1_update_done.lock") and not os.path.exists(
+                "CloudServer_2_update_done.lock"):
+            time.sleep(1)
+
+        """
+        添加新对象数据
+        """
+        # 更新数据的数据源
+        update_dp_path = 'update_data_object_1000_keyword_100.db'
+
+        # 读取完数据之后读取ID，
+
+        # 新数据建索引
+        update_data_index_build = IndexBuilder(read_data(update_dp_path))
+        update_data_index = update_data_index_build.build_update_data_index()
+
+        encrypted_update_data_index = {}
+        # 加密新数据索引
+        for key, (additional_object_keywords_list, additional_object_prefix_code_list) in tqdm(
+                update_data_index.items(), desc="Encrypting the update keyword index...", total=len(update_data_index)):
+
+            bitmap_map_2_object_map.append(key)
+            # 加密关键字
+            encrypted_additional_object_keywords_list = []
+            encrypted_additional_object_prefix_code_list = []
+            for additional_object_keyword in additional_object_keywords_list:
+                cipher_text, capsule = ProxyPseudorandom.encrypt(additional_object_keyword, proxy_pseudorandom_do_pub, mode="keyword", search_key=proxy_pseudorandom_key)
+                encrypted_additional_object_keywords_list.append((cipher_text, capsule))
+
+            for additional_object_prefix_code in additional_object_prefix_code_list:
+                cipher_text, capsule = ProxyPseudorandom.encrypt(additional_object_prefix_code, proxy_pseudorandom_do_pub, mode="position", search_key=proxy_pseudorandom_key)
+                encrypted_additional_object_prefix_code_list.append((cipher_text, capsule))
+
+            encrypted_update_data_index[key] = (encrypted_additional_object_keywords_list, encrypted_additional_object_prefix_code_list)
+
+
+        # 发送给服务器
+        send_to_server(encrypted_update_data_index, CLOUD_SERVER_1_ADDRESS)
 
 
 
