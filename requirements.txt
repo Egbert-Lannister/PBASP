@@ -1,7 +1,10 @@
-kagglehub>=0.3.9
-tqdm>=4.66.5
-numpy>=1.26.4
+kagglehub
+tqdm
+numpy
 numpy-hilbert-curve
 
-cryptography>=43.0.0
-ecdsa>=0.19.0
+cryptography
+ecdsa
+setuptools
+pycryptodome
+redis
