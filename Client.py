@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from BitMap import BitMap
 from IndexBuilder import IndexBuilder
+from ProcessController import wait_for_lock
 from encryption import ProxyPseudorandom
 from utils import receive_data, send_to_server, read_data
 
@@ -78,8 +79,8 @@ def main():
         encrypted_query_prefix_codes = [t.encode("utf-8") for t in encrypted_query_prefix_codes]
 
         # 等待重加密完成
-        while not os.path.exists("CloudServer_1_reencryption_done.lock") and not os.path.exists("CloudServer_2_reencryption_done.lock"):
-            time.sleep(1)
+        wait_for_lock("CloudServer_1_reencryption_done.lock")
+        wait_for_lock("CloudServer_2_1st_reencryption_done.lock")
 
         # 发送查询内容到服务器
         send_to_server((encrypted_query_keywords, encrypted_query_prefix_codes), CLOUD_SERVER_1_ADDRESS)
@@ -132,12 +133,12 @@ def main():
         keyword_query_result_AND = BitMap.bitmaps_logical_operation(decrypted_keyword_query_result, "AND")
         position_query_result_OR = BitMap.bitmaps_logical_operation(decrypted_position_query_result, "OR")
 
-        print(keyword_query_result_AND)
-        print(position_query_result_OR)
+        # print(keyword_query_result_AND)
+        # print(position_query_result_OR)
 
         query_result = BitMap.bitmaps_logical_operation([keyword_query_result_AND, position_query_result_OR], "AND")
 
-        print(query_result)
+        # print(query_result)
 
         result = query_result.get_set_bits()
 
@@ -214,9 +215,8 @@ def main():
         new_object = [("Dumpling", "Hot pot"), (39.954370,116.346740)]
 
         # 等待新数据
-        while not os.path.exists("CloudServer_1_update_done.lock") and not os.path.exists(
-                "CloudServer_2_update_done.lock"):
-            time.sleep(1)
+        wait_for_lock("CloudServer_1_update_done.lock")
+        wait_for_lock("CloudServer_2_update_done.lock")
 
         """
         添加新对象数据
@@ -233,7 +233,7 @@ def main():
         encrypted_update_data_index = {}
         # 加密新数据索引
         for key, (additional_object_keywords_list, additional_object_prefix_code_list) in tqdm(
-                update_data_index.items(), desc="Encrypting the update keyword index...", total=len(update_data_index)):
+                update_data_index.items(), desc="Encrypting the update data index...", total=len(update_data_index)):
 
             bitmap_map_2_object_map.append(key)
             # 加密关键字

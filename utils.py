@@ -1,7 +1,10 @@
+import atexit
 import os
+import signal
 import socket
 import pickle
 import sqlite3
+import sys
 
 from tqdm import tqdm
 from encryption import ProxyPseudorandom, UniversalReEncryption
@@ -58,19 +61,42 @@ def re_encrypt_data(data, rk, ure, progress_desc):
     return re_encrypted_data
 
 def delete_lock_files():
-    """删除所有锁文件"""
+    """
+    删除所有锁文件，并注册退出时的清理操作。
+    当程序正常退出或被中断时，都会自动删除这些锁文件。
+    """
     lock_files = [
         "CloudServer_1_1st_reencryption_done.lock",
         "CloudServer_2_1st_reencryption_done.lock",
         "data owner_done.lock",
         "CloudServer_1_reencryption_done.lock",
         "CloudServer_2_reencryption_done.lock",
-        "query_done.lock"
+        "query_done.lock",
+        "CloudServer_1_update_done.lock",
+        "CloudServer_2_update_done.lock",
     ]
-    for file in lock_files:
-        if os.path.exists(file):
-            os.remove(file)
-            print(f"已删除文件: {file}")
+
+    def cleanup():
+        for file in lock_files:
+            if os.path.exists(file):
+                os.remove(file)
+                print(f"已删除文件: {file}")
+
+    # 立即删除一次已有的锁文件
+    cleanup()
+
+    # 注册程序正常退出时的清理操作
+    atexit.register(cleanup)
+
+    # 定义信号处理函数，程序中断时调用 cleanup
+    def handle_signal(signum, frame):
+        print("程序中断，正在清理锁文件...")
+        cleanup()
+        sys.exit(0)
+
+    # 注册信号处理（Ctrl+C 或终止信号）
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
 
 def read_data(db_path):
     """

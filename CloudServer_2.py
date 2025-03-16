@@ -5,6 +5,7 @@ import time
 
 from tqdm import tqdm
 
+from ProcessController import wait_for_lock
 from encryption import ProxyPseudorandom, UniversalReEncryption
 from utils import receive_data, send_to_server, re_encrypt_data
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
@@ -74,16 +75,18 @@ def main():
 
 
                 # 进行重加密
-                for keyword, (capsule, encrypted_bitmap, capacity) in tqdm(encrypted_keyword_index_1.items(), desc="1st Re-Encrypting the keyword index 1...", total=len(encrypted_keyword_index_1)):
+                for keyword, (capsule, encrypted_bitmap, origin_capacity) in tqdm(encrypted_keyword_index_1.items(), desc="1st Re-Encrypting the keyword index 1...", total=len(encrypted_keyword_index_1)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+                    capacity = origin_capacity
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
                     re_encrypted_keyword_index_1_1st[keyword] = [new_capsule, re_encrypted_bitmap, capacity]
 
                 # 进行重加密
-                for position, (capsule, encrypted_bitmap, capacity) in tqdm(encrypted_position_index_1.items(), desc="1st Re-Encrypting the position index 1...", total=len(encrypted_keyword_index_1)):
+                for position, (capsule, encrypted_bitmap, origin_capacity) in tqdm(encrypted_position_index_1.items(), desc="1st Re-Encrypting the position index 1...", total=len(encrypted_keyword_index_1)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+                    capacity = origin_capacity
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
@@ -96,8 +99,7 @@ def main():
             f.write("CloudServer 2 1st Re-encryption completed")
 
         # 等待服务器2第一次重加密完成
-        while not os.path.exists("CloudServer_1_1st_reencryption_done.lock"):
-            time.sleep(1)
+        wait_for_lock("CloudServer_1_1st_reencryption_done.lock")
 
         conn, addr = s.accept()
         with conn:
@@ -113,16 +115,18 @@ def main():
                 re_encrypted_position_index_2_2nd = {}
 
                 # 进行重加密
-                for keyword, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_keyword_index_2_1st.items(), desc="2nd Re-Encrypting the keyword index 2...", total=len(re_encrypted_keyword_index_2_1st)):
+                for keyword, (capsule, encrypted_bitmap, origin_capacity) in tqdm(re_encrypted_keyword_index_2_1st.items(), desc="2nd Re-Encrypting the keyword index 2...", total=len(re_encrypted_keyword_index_2_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+                    capacity = origin_capacity
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
                     re_encrypted_keyword_index_2_2nd[keyword] = [new_capsule, re_encrypted_bitmap, capacity]
 
                 # 进行重加密
-                for position, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_position_index_2_1st.items(), desc="2nd Re-Encrypting the position index 2...", total=len(re_encrypted_position_index_2_1st)):
+                for position, (capsule, encrypted_bitmap, origin_capacity) in tqdm(re_encrypted_position_index_2_1st.items(), desc="2nd Re-Encrypting the position index 2...", total=len(re_encrypted_position_index_2_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+                    capacity = origin_capacity
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
@@ -191,8 +195,7 @@ def main():
                 send_to_server((keyword_query_result, position_query_result), CLIENT_ADDRESS)
 
         # 等待查询结束
-        while not os.path.exists("query_done.lock"):
-            time.sleep(1)
+        wait_for_lock("query_done.lock")
 
         conn, addr = s.accept()
         with conn:
@@ -201,11 +204,31 @@ def main():
             if data:
                 encrypted_update_keyword_query_result_2, encrypted_update_position_query_result_2 = data
 
-                for key, value in encrypted_update_keyword_query_result_2.items():
-                    re_encrypted_keyword_index_2_2nd[key] = value
+                for encrypted_update_keyword, (capsule, encrypted_update_keyword_query_result_bitmap) in encrypted_update_keyword_query_result_2.items():
+                    init_token = encrypted_update_keyword.decode("utf-8")
+                    found = False
+                    for encrypted_keyword, (capsule, encrypted_bitmap, capacity) in re_encrypted_keyword_index_2_2nd.items():
+                        count = capsule.get("count", 0)
+                        transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
+                        if transformed_token == capsule["tag"]:
+                            re_encrypted_keyword_index_2_2nd[encrypted_keyword] = [capsule, encrypted_update_keyword_query_result_bitmap, capacity]
+                            found = True
+                            break
+                    if not found:
+                        keyword_query_result[init_token] = "NotFound"
 
-                for key, value in encrypted_update_position_query_result_2.items():
-                    re_encrypted_position_index_2_2nd[key] = value
+                for encrypted_update_position, (capsule, encrypted_update_position_query_result_bitmap) in encrypted_update_position_query_result_2.items():
+                    init_token = encrypted_update_position.decode("utf-8")
+                    found = False
+                    for encrypted_prefix_code, (capsule, encrypted_bitmap, capacity) in re_encrypted_position_index_2_2nd.items():
+                        count = capsule.get("count", 0)
+                        transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
+                        if transformed_token == capsule["tag"]:
+                            re_encrypted_position_index_2_2nd[encrypted_prefix_code] = [capsule, encrypted_update_position_query_result_bitmap, capacity]
+                            found = True
+                            break
+                    if not found:
+                        keyword_query_result[init_token] = "NotFound"
 
         # 创建标志文件，通知 Client 查询结束的数据更新已完成
         with open("CloudServer_2_update_done.lock", "w") as f:

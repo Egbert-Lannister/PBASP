@@ -18,7 +18,7 @@ class LockFileEventHandler(FileSystemEventHandler):
             self.event.set()  # 设置事件，解除阻塞
 
 
-def wait_for_lock_file(lock_file, watch_directory="."):
+def wait_for_lock(lock_file, watch_directory="."):
     # 创建事件对象，用于阻塞等待
     file_created_event = threading.Event()
 
@@ -41,6 +41,6 @@ def wait_for_lock_file(lock_file, watch_directory="."):
 
 if __name__ == "__main__":
     # 使用示例：替换原来的轮询等待代码
-    wait_for_lock_file("dataowner_done.lock")
+    wait_for_lock("dataowner_done.lock")
     # 后续处理代码在此处执行
     print("执行后续操作...")

@@ -3,6 +3,7 @@ import pickle
 import random
 import math
 import hmac
+from functools import lru_cache
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from ecdsa import SigningKey, VerifyingKey, NIST256p
@@ -192,6 +193,11 @@ class ProxyPseudorandom:
         for i in range(count):
             token = hmac.new(round_key, token.encode("utf-8") + str(i).encode("utf-8"), hashlib.sha256).hexdigest()
         return token
+
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def transform_query_token_cached(rk, init_token, count):
+        return ProxyPseudorandom.transform_query_token(init_token, rk, count)
 
     # --------------------- 其他重加密和解密相关功能（保持原有逻辑） ---------------------
     @staticmethod

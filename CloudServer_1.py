@@ -1,3 +1,4 @@
+import logging
 import os
 import socket
 import pickle
@@ -6,13 +7,15 @@ import time
 from tqdm import tqdm
 
 from BitMap import BitMap
-from ProcessController import wait_for_lock_file
+from ProcessController import wait_for_lock
 from encryption import ProxyPseudorandom, UniversalReEncryption
 # from test_proxy import capsule
 from utils import receive_data, send_to_server, re_encrypt_data
 import universal_reencryption
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
 # from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 def main():
     # 定义服务器 客户端地址
@@ -77,8 +80,9 @@ def main():
                 re_encrypted_keyword_index_2_1st = {}
                 re_encrypted_position_index_2_1st = {}
 
-                for keyword, (capsule, encrypted_bitmap, capacity) in tqdm(encrypted_keyword_index_2.items(), desc="1st Re-Encrypting the keyword index 2...", total=len(encrypted_keyword_index_2)):
+                for keyword, (capsule, encrypted_bitmap, origin_capacity) in tqdm(encrypted_keyword_index_2.items(), desc="1st Re-Encrypting the keyword index 2...", total=len(encrypted_keyword_index_2)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+                    capacity = origin_capacity
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
@@ -86,8 +90,9 @@ def main():
 
 
                 # 进行重加密
-                for position, (capsule, encrypted_bitmap, capacity) in tqdm(encrypted_position_index_2.items(), desc="1st Re-Encrypting the position index 2...", total=len(encrypted_position_index_2)):
+                for position, (capsule, encrypted_bitmap, origin_capacity) in tqdm(encrypted_position_index_2.items(), desc="1st Re-Encrypting the position index 2...", total=len(encrypted_position_index_2)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+                    capacity = origin_capacity
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
@@ -100,8 +105,7 @@ def main():
             f.write("CloudServer 1 1st Re-encryption completed")
 
         # 等待服务器2第一次重加密完成
-        while not os.path.exists("CloudServer_2_1st_reencryption_done.lock"):
-            time.sleep(1)
+        wait_for_lock("CloudServer_2_1st_reencryption_done.lock")
 
         conn, addr = s.accept()
         with conn:
@@ -117,16 +121,18 @@ def main():
                 re_encrypted_position_index_1_2nd = {}
 
                 # 进行重加密
-                for keyword, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_keyword_index_1_1st.items(), desc="2nd Re-Encrypting the keyword index 1...", total=len(re_encrypted_keyword_index_1_1st)):
+                for keyword, (capsule, encrypted_bitmap, origin_capacity) in tqdm(re_encrypted_keyword_index_1_1st.items(), desc="2nd Re-Encrypting the keyword index 1...", total=len(re_encrypted_keyword_index_1_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+                    capacity = origin_capacity
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
                     re_encrypted_keyword_index_1_2nd[keyword] = [new_capsule, re_encrypted_bitmap, capacity]
 
                 # 进行重加密
-                for position, (capsule, encrypted_bitmap, capacity) in tqdm(re_encrypted_position_index_1_1st.items(), desc="2nd Re-Encrypting the position index 1...", total=len(re_encrypted_position_index_1_1st)):
+                for position, (capsule, encrypted_bitmap, origin_capacity) in tqdm(re_encrypted_position_index_1_1st.items(), desc="2nd Re-Encrypting the position index 1...", total=len(re_encrypted_position_index_1_1st)):
                     new_capsule = ProxyPseudorandom.re_encryption(rk, capsule)
+                    capacity = origin_capacity
 
                     re_encrypted_bitmap = ure.reencrypt_bitmap(encrypted_bitmap)
 
@@ -194,8 +200,7 @@ def main():
                 send_to_server((keyword_query_result, position_query_result), CLIENT_ADDRESS)
 
         # 等待查询结束
-        while not os.path.exists("query_done.lock"):
-            time.sleep(1)
+        wait_for_lock("query_done.lock")
 
         conn, addr = s.accept()
         with conn:
@@ -204,11 +209,31 @@ def main():
             if data:
                 encrypted_update_keyword_query_result_1, encrypted_update_position_query_result_1 = data
 
-                for key, value in encrypted_update_keyword_query_result_1.items():
-                    re_encrypted_keyword_index_1_2nd[key] = value
+                for encrypted_update_keyword, (capsule, encrypted_update_keyword_query_result_bitmap) in encrypted_update_keyword_query_result_1.items():
+                    init_token = encrypted_update_keyword.decode("utf-8")
+                    found = False
+                    for encrypted_keyword, (capsule, encrypted_bitmap, capacity) in re_encrypted_keyword_index_1_2nd.items():
+                        count = capsule.get("count", 0)
+                        transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
+                        if transformed_token == capsule["tag"]:
+                            re_encrypted_keyword_index_1_2nd[encrypted_keyword] = [capsule, encrypted_update_keyword_query_result_bitmap, capacity]
+                            found = True
+                            break
+                    if not found:
+                        keyword_query_result[init_token] = "NotFound"
 
-                for key, value in encrypted_update_position_query_result_1.items():
-                    re_encrypted_position_index_1_2nd[key] = value
+                for encrypted_update_position, (capsule, encrypted_update_position_query_result_bitmap) in encrypted_update_position_query_result_1.items():
+                    init_token = encrypted_update_position.decode("utf-8")
+                    found = False
+                    for encrypted_prefix_code, (capsule, encrypted_bitmap, capacity) in re_encrypted_position_index_1_2nd.items():
+                        count = capsule.get("count", 0)
+                        transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
+                        if transformed_token == capsule["tag"]:
+                            re_encrypted_position_index_1_2nd[encrypted_prefix_code] = [capsule, encrypted_update_position_query_result_bitmap, capacity]
+                            found = True
+                            break
+                    if not found:
+                        keyword_query_result[init_token] = "NotFound"
 
         # 创建标志文件，通知 Client 查询结束的数据更新已完成
         with open("CloudServer_1_update_done.lock", "w") as f:
@@ -222,6 +247,14 @@ def main():
             if data:
                 encrypted_update_data_index = data
 
+                keyword_tag_index = {capsule["tag"]: (encrypted_keyword, capsule, encrypted_bitmap, capacity) for
+                                     encrypted_keyword, (capsule, encrypted_bitmap, capacity) in
+                                     re_encrypted_keyword_index_1_2nd.items()}
+
+                prefix_code_tag_index = {capsule["tag"]: (encrypted_prefix_code, capsule, encrypted_bitmap, capacity) for
+                                     encrypted_keyword, (capsule, encrypted_bitmap, capacity) in
+                                     re_encrypted_position_index_1_2nd.items()}
+
                 capacity_num = 2001
                 for business_ID, (encrypted_additional_object_keywords_list, encrypted_additional_object_prefix_code_list) in tqdm(encrypted_update_data_index.items(), desc="Adding data...", total=len(encrypted_update_data_index)):
 
@@ -231,43 +264,36 @@ def main():
                         (cipher_text, capsule_origin) = encrypted_additional_object_keyword
                         # 查找这个关键字之前存没存过
                         init_token = cipher_text.decode("utf-8")
-                        found = False
-                        for encrypted_keyword, (capsule, encrypted_bitmap, capacity) in re_encrypted_keyword_index_1_2nd.items():
-                            # 获取重加密次数
-                            count = capsule.get("count", 0)
-                            # 对客户端原始令牌转换 count 次
-                            transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
-                            # 与存储在 capsule 中的 tag 比较
-                            if transformed_token == capsule["tag"]:
-                                encrypted_bitmap.add_object(has_keyword=True)
-                                found = True
-                                break
-                        if not found:
+                        transformed_token = ProxyPseudorandom.transform_query_token_cached(init_token, rk, count)
+                        if transformed_token in keyword_tag_index:
+                            encrypted_keyword, capsule, encrypted_bitmap, capacity = keyword_tag_index[transformed_token]
+
+                            existed_bitmap = BitMap.from_string(ure.decrypt_bitmap(encrypted_bitmap),capacity=capacity_num)
+
+                            existed_bitmap.add_object(has_keyword=True)
+                            re_encrypted_keyword_index_1_2nd[encrypted_keyword] = [capsule, ure.encrypt_bitmap(str(existed_bitmap)), capacity_num]
+                        else:
                             bitmap = BitMap(capacity=capacity_num)
-                            encrypted_bitmap = ure.encrypt_bitmap(bitmap)
-                            re_encrypted_keyword_index_1_2nd[encrypted_keyword] = [encrypted_bitmap, encrypted_bitmap, capacity]
+                            encrypted_bitmap = ure.encrypt_bitmap(str(bitmap))
+                            re_encrypted_keyword_index_1_2nd[cipher_text] = [capsule_origin, encrypted_bitmap, capacity_num]
 
                     for encrypted_additional_object_prefix_code in encrypted_additional_object_prefix_code_list:
 
                         (cipher_text, capsule_origin) = encrypted_additional_object_prefix_code
                         # 查找时用 key 以 bytes 形式存储，故先转换为字符串
                         init_token = cipher_text.decode("utf-8")
-                        # 遍历加密关键字索引，寻找匹配项
-                        found = False
-                        for encrypted_prefix_code, (capsule, encrypted_bitmap) in re_encrypted_position_index_1_2nd.items():
-                            # 获取重加密次数
-                            count = capsule.get("count", 0)
-                            # 对客户端原始令牌转换 count 次
-                            transformed_token = ProxyPseudorandom.transform_query_token(init_token, rk, count)
-                            # 与存储在 capsule 中的 tag 比较
-                            if transformed_token == capsule["tag"]:
-                                encrypted_bitmap.add_object(has_keyword=True)
-                                found = True
-                                break
-                        if not found:
+                        transformed_token = ProxyPseudorandom.transform_query_token_cached(init_token, rk, count)
+                        if transformed_token in prefix_code_tag_index:
+                            encrypted_prefix_code, capsule, encrypted_bitmap, capacity = prefix_code_tag_index[transformed_token]
+                            existed_bitmap = BitMap.from_string(ure.decrypt_bitmap(encrypted_bitmap),
+                                                                capacity=capacity_num)
+                            existed_bitmap.add_object(has_keyword=True)
+                            re_encrypted_position_index_1_2nd[encrypted_prefix_code] = [capsule, ure.encrypt_bitmap(str(existed_bitmap)), capacity_num]
+                        else:
                             bitmap = BitMap(capacity=capacity_num)
-                            encrypted_bitmap = ure.encrypt_bitmap(bitmap)
-                            re_encrypted_position_index_1_2nd[encrypted_keyword] = [encrypted_bitmap, encrypted_bitmap, capacity]
+                            encrypted_bitmap = ure.encrypt_bitmap(str(bitmap))
+                            re_encrypted_position_index_1_2nd[cipher_text] = [capsule_origin, encrypted_bitmap, capacity_num]
+
                     capacity_num+=1
 
                 print("------------------------添加完成------------------------")
