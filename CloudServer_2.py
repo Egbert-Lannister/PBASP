@@ -1,18 +1,19 @@
-import os
 import socket
-import pickle
-import time
+import redis
 
 from tqdm import tqdm
-
-from ProcessController import wait_for_lock
 from encryption import ProxyPseudorandom, UniversalReEncryption
+from redis_utils import publish_redis_event, wait_for_redis_events
 from utils import receive_data, send_to_server, re_encrypt_data
 # from TailoredUniversalReEncryption.UniversalReEncryption_MultithreadingParallel import UniversalReEncryption
 # from UniversalReEncryption.Universal_ReEncryption_cpp_Acceleration import universal_reencryption
 import universal_reencryption
 
 def main():
+
+    # 创建 Redis 连接（确保 Redis 服务已启动）
+    r = redis.Redis(host='localhost', port=6379, db=0)
+
     # 定义服务器 客户端地址
     HOST = 'localhost'
     cs1_PORT = 12345
@@ -22,10 +23,14 @@ def main():
     # CLOUD_SERVER_2_ADDRESS = (HOST, cs2_PORT)  # CloudServer_2 的地址
     CLIENT_ADDRESS = (HOST, client_PORT)  # Client 客户端的地址
 
+    # wait_for_redis_events(r, ["bitmap_map_2_object_map"], expected_message="done")
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, cs2_PORT))
         s.listen()
         print(f"CloudServer_2 已启动，监听端口 {cs2_PORT}...")
+
+        wait_for_redis_events(r, ["Key sending"], expected_message="begin")
 
         # 接收代理伪随机密钥
         conn, addr = s.accept()
@@ -46,6 +51,10 @@ def main():
                 print("收到以下数据：")
                 print(f"Cloud Server 2 收到 ure :{ure}")
 
+        publish_redis_event(r, "CloudServer 2 received", message="done")
+
+        wait_for_redis_events(r, ["Encrypted data sending"], expected_message="begin")
+
         conn, addr = s.accept()
         with conn:
             print(f"连接来自 {addr}")
@@ -56,7 +65,8 @@ def main():
                 print(f"Cloud Server 2 收到 encrypted_keyword_index_2, 共有 {len(encrypted_keyword_index_2)}条")
                 print(f"Cloud Server 2 收到 encrypted_position_index_2， 共有{len(encrypted_position_index_2)}条")
 
-                # 在这里存储或处理数据
+                # publish_redis_event(r, "CloudServer 2 received encrypted data", message="done")
+                # wait_for_redis_events(r, ["CloudServer 1 received encrypted data"], expected_message="done")
 
                 send_to_server((encrypted_keyword_index_2, encrypted_position_index_2), CLOUD_SERVER_1_ADDRESS)
 
@@ -92,14 +102,11 @@ def main():
 
                     re_encrypted_position_index_1_1st[position] = [new_capsule, re_encrypted_bitmap, capacity]
 
+                # publish_redis_event(r, "Cloud Server 2 1st re-encrypted data", message="done")
+                # wait_for_redis_events(r, ["Cloud Server 1 1st re-encrypted data"], expected_message="done")
+
+                # 发送第一次重加密数据
                 send_to_server((re_encrypted_keyword_index_1_1st, re_encrypted_position_index_1_1st), CLOUD_SERVER_1_ADDRESS)
-
-        # 创建标志文件，通知 服务器2 重加密完成
-        with open("CloudServer_2_1st_reencryption_done.lock", "w") as f:
-            f.write("CloudServer 2 1st Re-encryption completed")
-
-        # 等待服务器2第一次重加密完成
-        wait_for_lock("CloudServer_1_1st_reencryption_done.lock")
 
         conn, addr = s.accept()
         with conn:
@@ -132,12 +139,8 @@ def main():
 
                     re_encrypted_position_index_2_2nd[position] = [new_capsule, re_encrypted_bitmap, capacity]
 
-        # 创建标志文件，通知 Client 重加密完成
-        with open("CloudServer_2_reencryption_done.lock", "w") as f:
-            f.write("CloudServer 2 Re-encryption completed")
-
-        # 等待查询数据准备结束
-        wait_for_lock("query_begin.lock")
+        publish_redis_event(r, "Cloud Server 2 2nd re-encrypted data", message="done")
+        wait_for_redis_events(r, ["query_begin"], expected_message="begin")
 
         conn, addr = s.accept()
         with conn:
@@ -187,21 +190,11 @@ def main():
                     if not found:
                         keyword_query_result[init_token] = "NotFound"
 
-                # for encrypted_query_keyword in encrypted_query_keywords:
-                #     keyword_query_result[encrypted_query_keyword] = re_encrypted_keyword_index_2_2nd[
-                #         encrypted_query_keyword]
-                #
-                # for encrypted_query_prefix_code in encrypted_query_prefix_codes:
-                #     position_query_result[encrypted_query_prefix_code] = re_encrypted_position_index_2_2nd[
-                #         encrypted_query_prefix_code]
-
+                # publish_redis_event(r, "Cloud Server 1 query", message="done")
+                # wait_for_redis_events(r, ["Cloud Server 2 query result sending"], expected_message="begin")
                 send_to_server((keyword_query_result, position_query_result), CLIENT_ADDRESS)
 
-        with open("CloudServer_2_query_request_done.lock", "w") as f:
-            f.write("CloudServer 2 query request completed")
-
-        # 等待查询结束
-        wait_for_lock("query_done.lock")
+        wait_for_redis_events(r, ["Data update"], expected_message="begin")
 
         conn, addr = s.accept()
         with conn:
@@ -236,10 +229,7 @@ def main():
                     if not found:
                         keyword_query_result[init_token] = "NotFound"
 
-        # 创建标志文件，通知 Client 查询结束的数据更新已完成
-        with open("CloudServer_2_update_done.lock", "w") as f:
-            f.write("CloudServer_2_update_done")
-
+        # publish_redis_event(r, "CloudServer_1_update_done", message="done")
 
 
 

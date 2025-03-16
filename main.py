@@ -1,20 +1,31 @@
 import subprocess
 import time
 
-from utils import delete_lock_files
+def start_redis():
+    try:
+        # 启动 Redis 服务器（假设 redis-server 可执行文件在 PATH 中，
+        # 如果有配置文件，则可以指定，如 ["redis-server", "redis.conf"]）
+        redis_process = subprocess.Popen(["redis-server"])
+        # 等待几秒让 Redis 服务器启动
+        time.sleep(2)
+        print("Redis server started.")
+        return redis_process
+    except Exception as e:
+        print("Error starting Redis server:", e)
+        return None
 
 def main():
-    # 注册并删除已有的锁文件，同时注册退出时的清理操作
-    delete_lock_files()
+    # 启动 Redis 服务器
+    redis_process = start_redis()
 
     # 启动 CloudServer_1
     server1_process = subprocess.Popen(["python", "CloudServer_1.py"])
     # 启动 CloudServer_2
     server2_process = subprocess.Popen(["python", "CloudServer_2.py"])
-    # 启动 Client
-    client_process = subprocess.Popen(["python", "Client.py"])
     # 启动 DataOwner
     data_owner_process = subprocess.Popen(["python", "DataOwner.py"])
+    # 启动 Client
+    client_process = subprocess.Popen(["python", "Client.py"])
 
     print("所有进程已启动...")
 
@@ -31,9 +42,10 @@ def main():
         client_process.terminate()
         data_owner_process.terminate()
     finally:
-        # 删除所有 .lock 文件
-        delete_lock_files()
-        print("程序运行结束，所有文件锁已删除")
+        # 结束 Redis 服务器进程
+        if redis_process:
+            redis_process.terminate()
+            print("Redis server terminated.")
 
 if __name__ == "__main__":
     main()

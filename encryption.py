@@ -197,6 +197,9 @@ class ProxyPseudorandom:
     @staticmethod
     @lru_cache(maxsize=None)
     def transform_query_token_cached(rk, init_token, count):
+        # 确保 init_token 是字符串
+        if not isinstance(init_token, str):
+            init_token = str(init_token)
         return ProxyPseudorandom.transform_query_token(init_token, rk, count)
 
     # --------------------- 其他重加密和解密相关功能（保持原有逻辑） ---------------------
