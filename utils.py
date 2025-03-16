@@ -74,6 +74,9 @@ def delete_lock_files():
         "query_done.lock",
         "CloudServer_1_update_done.lock",
         "CloudServer_2_update_done.lock",
+        "CloudServer_2_query_request_done.lock",
+        "CloudServer_1_query_request_done.lock",
+        "query_begin.lock"
     ]
 
     def cleanup():
