@@ -197,6 +197,9 @@ def main():
 
                 send_to_server((keyword_query_result, position_query_result), CLIENT_ADDRESS)
 
+        with open("CloudServer_2_query_request_done.lock", "w") as f:
+            f.write("CloudServer 2 query request completed")
+
         # 等待查询结束
         wait_for_lock("query_done.lock")
 
