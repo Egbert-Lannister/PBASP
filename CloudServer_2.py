@@ -136,6 +136,9 @@ def main():
         with open("CloudServer_2_reencryption_done.lock", "w") as f:
             f.write("CloudServer 2 Re-encryption completed")
 
+        # 等待查询数据准备结束
+        wait_for_lock("query_begin.lock")
+
         conn, addr = s.accept()
         with conn:
             print(f"连接来自 {addr}")
