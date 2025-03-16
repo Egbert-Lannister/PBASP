@@ -19,6 +19,12 @@ class LockFileEventHandler(FileSystemEventHandler):
 
 
 def wait_for_lock(lock_file, watch_directory="."):
+
+    # 如果文件已经存在，直接返回
+    if os.path.exists(lock_file):
+        print(f"{lock_file} 文件已存在，继续后续处理。")
+        return
+
     # 创建事件对象，用于阻塞等待
     file_created_event = threading.Event()
 
