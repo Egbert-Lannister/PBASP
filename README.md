@@ -106,18 +106,14 @@ The script performs the following steps:
    - A SQLite database file (e.g., `data_object_2000_keyword_100.db`) containing the `business_table`.
    - A summary of the dataset generation process, including the number of processed lines, successful insertions, and unique keywords.
 
-### Example Output
-
-```
-Processing JSON: 100%|██████████| 2000/2000 [00:10<00:00, 199.01it/s]
-Processed 2000 lines, 1990 successful, 10 failed
-Total records in business_table: 1990
-```
-
-### Notes
-
-1. **Keyword Uniqueness**:
-   - The script ensures that keywords are unique within the `keyword_set` and avoids duplicates during insertion.
+## Configuration
+- Create or modify the 'config.ini' file in the project root directory to configure the path to the database file. For example:
+  ```ini
+  [database]
+  origin_db_path = data_object_2000_keyword_100.db
+  update_dp_path = update_data_object_1000_keyword_100.db
+  ```
+If you need to use another database file, simply modify the path in this file.
 
 2. **Scalability**:
    - The dataset generation process is designed to handle large-scale datasets by processing the JSON file line-by-line and using efficient database operations.
