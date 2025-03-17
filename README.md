@@ -1,7 +1,7 @@
 # Privacy-Preserving Boolean Range Query to Hide Access and Search Patterns
 
 ---
-[Chinese Version](README.zh.md)
+[Chinese Version](README_zh.md)
 
 This project implements a distributed data encryption, re-encryption, and query system that involves four key roles: **DataOwner**, **CloudServer 1**, **CloudServer 2**, and **Client**. These components coordinate via socket communication and Redis events to perform data indexing, encryption, re-encryption, and query processing.
 
