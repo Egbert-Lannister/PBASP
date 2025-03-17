@@ -95,8 +95,14 @@ The script performs the following steps:
    ```bash
    python dataset_builder.py
    ```
-
-5. **Output**:
+- Update data maker
+   ```bash
+   python data/update_data_maker.py  --object_number 1000 --keyword_set_num 100
+   ```
+   Adjust the following parameters in the script to customize the dataset:
+  - `object_number`: The number of business objects to include in the dataset.
+  - `keyword_set_num`: The maximum number of unique keywords to track.
+4. **Output**:
    - A SQLite database file (e.g., `data_object_2000_keyword_100.db`) containing the `business_table`.
    - A summary of the dataset generation process, including the number of processed lines, successful insertions, and unique keywords.
 
