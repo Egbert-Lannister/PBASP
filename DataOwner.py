@@ -1,6 +1,7 @@
 import time
 import sys
 import redis
+import configparser
 
 sys.path.append(r"D:\Python_Script\PBASP\UniversalReEncryption")
 
@@ -10,6 +11,10 @@ from utils import receive_data, send_to_server, read_data
 from IndexBuilder import IndexBuilder
 from encryption import ProxyPseudorandom
 import universal_reencryption
+
+# 读取 config.ini 配置文件
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 # 定义服务器和客户端地址
 HOST = 'localhost'
@@ -127,7 +132,7 @@ if __name__ == "__main__":
     # 建立 Redis 连接（请确保 Redis 服务已启动）
     r = redis.Redis(host='localhost', port=6379, db=0)
 
-    origin_db_path = 'data_object_2000_keyword_100.db'
+    origin_db_path = config['database']['origin_db_path']
 
     # 开始建索引
     keyword_index_1, keyword_index_2, position_index_1, position_index_2 = index_building(read_data(origin_db_path))

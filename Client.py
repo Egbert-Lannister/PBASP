@@ -1,4 +1,5 @@
 import socket
+import configparser
 from tqdm import tqdm
 
 from BitMap import BitMap
@@ -7,6 +8,9 @@ from redis_utils import publish_redis_event, wait_for_redis_events
 from encryption import ProxyPseudorandom
 from utils import receive_data, send_to_server, read_data
 import redis
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 def main():
     # 建立 Redis 连接（确保 Redis 服务已启动）
@@ -215,7 +219,7 @@ def main():
         # 等待新数据更新完成
         # wait_for_redis_events(r,["CloudServer_1_update_done", "CloudServer_2_update_done"], expected_message="done")
 
-        update_dp_path = 'update_data_object_1000_keyword_100.db'
+        update_dp_path = config['database']['update_dp_path']
         update_data_index_build = IndexBuilder(read_data(update_dp_path))
         update_data_index = update_data_index_build.build_update_data_index()
 
