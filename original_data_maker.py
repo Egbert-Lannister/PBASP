@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def process_data(object_number, keyword_set_num):
     # 数据库文件名设置
-    db_filename = f"data_object_{object_number}_keyword_{keyword_set_num}.db"
+    db_filename = f"original_data_object_{object_number}_keyword_{keyword_set_num}.db"
 
     # 创建或连接数据库
     conn = sqlite3.connect(db_filename)
