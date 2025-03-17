@@ -4,6 +4,31 @@ Below is a sample `README.md` section for the **Dataset Building** part of your 
 
 ---
 
+This project implements a distributed data encryption, re-encryption and query system, including four roles: DataOwner, CloudServer 1, CloudServer 2 and Client. Each role coordinates through Socket communication and Redis events to complete the complete process of data indexing, encryption, re-encryption, and query.
+
+
+## Project Overview
+
+The project performs the following functions:
+
+1. **Database Setup**:
+   - Creates a SQLite database file named `data_object_{object_number}_keyword_{keyword_set_num}.db`.
+   - Defines a table `business_table` with columns for `business_id`, `latitude`, `longitude`, and `keywords`.
+
+2. **DataOwner**
+   - Read the raw data file (the path is configured through `config.ini`).
+   - Build keyword indexes and location indexes.
+   - Encrypts index data and sends keys and encrypted data to each CloudServer and Client.
+
+3. **CloudServer**
+   - The encrypted data is received and a two-stage re-encryption is performed.
+   - Coordinate data updates, query request processing, and interaction with clients.
+
+4. **Client**:
+   - Generate query tokens and send query requests.
+   - Receives the query result, decrypts the result and performs logical operations to obtain the ID of the query object.
+   - Support for updating data query results and adding new objects.
+
 ## Dataset Building
 
 This section describes the process of building the dataset used for the Privacy-Preserving Boolean Range Query to Hide Access and Search Patterns model. The provided Python script (`dataset_builder.py`) generates a SQLite database containing business objects with their associated keywords, latitude, and longitude. This dataset is essential for simulating and evaluating the model's performance.
