@@ -310,7 +310,7 @@ def main():
                     capacity_num += 1
                 adding_end_time = time.time()
                 logging.info(f"数据添加时间：{adding_end_time - start_adding_time}")
-                logging.info("------------------------添加完成------------------------")
+                print("------------------------添加完成------------------------")
 
 
 if __name__ == "__main__":
