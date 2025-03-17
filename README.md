@@ -69,6 +69,11 @@ The script performs the following steps:
 ### Usage
 
 1. **Dataset Download**:
+   - Install the required Python packages:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. **Dataset Download**:
      ```bash
      python data/dataDownload.py
      ```
