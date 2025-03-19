@@ -1,3 +1,6 @@
+import math
+import random
+
 import numpy as np
 from hilbert import encode, decode  # pip install numpy-hilbert-curve
 from BitMap import BitMap
@@ -78,6 +81,43 @@ class IndexBuilder:
             update_data_index[business_id] = (row_keywords, prefix_codes)
 
         return update_data_index
+
+    @staticmethod
+    def query_object_prefix_codes_generation(query_prefix_code_range, n_bits=16):
+        """
+        根据 query_prefix_code_range（例如 0.001）生成希尔伯特值区间的二维前缀码列表。
+        整个希尔伯特值空间为 2^(2*n_bits) 个整数。
+        这里起始值 start 在 [0, total_space - width] 内随机选取，
+        确保区间 [start, start+width-1] 不越界。
+
+        对区间内的每个希尔伯特整数，将其转换为 total_bits 位的二进制字符串，
+        然后调用 get_prefix_codes 得到该整数对应的前缀码列表。
+
+        返回：
+          一个二维列表，每个元素是一个前缀码列表，对应区间内一个希尔伯特值。
+        """
+        total_bits = 2 * n_bits
+        total_space = 2 ** total_bits
+        # 计算区间宽度（取整），至少为 1
+        width = int(query_prefix_code_range * total_space)
+        if width < 1:
+            width = 1
+
+        # 随机选取起始值，确保区间 [start, start+width-1] 不超出整个空间
+        start = random.randint(0, total_space - width)
+        end = start + width - 1
+
+        query_object_prefix_codes_list = []
+        # 遍历区间内的所有整数
+        for L in range(start, end + 1):
+            # 转换为 total_bits 位的二进制字符串
+            bin_str = format(L, '0{}b'.format(total_bits))
+            # 调用已有的 get_prefix_codes 方法得到该二进制字符串对应的前缀码列表
+            prefix_codes = IndexBuilder.get_prefix_codes(bin_str)
+            query_object_prefix_codes_list.append(prefix_codes)
+
+        return query_object_prefix_codes_list
+
 
     @staticmethod
     def lat_lon_to_hilbert_to_64bit_binary(latitude, longitude, n_bits=16):

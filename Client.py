@@ -27,9 +27,16 @@ def main():
     longitude = -75.1555641
 
     query_keywords = ["Restaurants", "Food"]
-    query_prefix_codea = IndexBuilder.get_prefix_codes(
+    query_prefix_code = IndexBuilder.get_prefix_codes(
         IndexBuilder.lat_lon_to_hilbert_to_64bit_binary(latitude, longitude)
     )
+
+    # 查询数据准备
+    query_prefix_code_range = 0.1
+
+
+
+
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, client_PORT))
@@ -80,7 +87,7 @@ def main():
             encrypted_query_keywords.append(one_encrypted_keyword)
 
         encrypted_query_prefix_codes = []
-        for value in query_prefix_codea:
+        for value in query_prefix_code:
             one_encrypted_prefix_code = ProxyPseudorandom.generate_search_token(value, proxy_pseudorandom_key)
             encrypted_query_prefix_codes.append(one_encrypted_prefix_code)
 

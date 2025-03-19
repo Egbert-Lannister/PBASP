@@ -1,7 +1,7 @@
 # Privacy-Preserving Boolean Range Query to Hide Access and Search Patterns
 
 ---
-[Chinese Version](README_zh.md)
+[中文阅读](README_zh.md)
 
 This project implements a distributed data encryption, re-encryption, and query system that involves four key roles: **DataOwner**, **CloudServer 1**, **CloudServer 2**, and **Client**. These components coordinate via socket communication and Redis events to perform data indexing, encryption, re-encryption, and query processing.
 
@@ -53,7 +53,7 @@ The dataset building process aims to:
    ```bash
    python data/dataDownload.py
    ```
-   Then, download the Yelp Dataset from the [official repository](https://www.yelp.com/dataset) and place the `yelp_academic_dataset_business.json` file into the `data/yelp_dataset/` directory.
+   And you can download the Yelp Dataset from the [official repository](https://www.yelp.com/dataset) and place the `yelp_academic_dataset_business.json` file into the `data/yelp_dataset/` directory.
 
 3. **Build the Database**  
    - **Original Data Maker**:  

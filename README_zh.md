@@ -53,7 +53,7 @@
    ```bash
    python data/dataDownload.py
    ```
-   然后，从 [官方数据集](https://www.yelp.com/dataset) 下载 Yelp 数据，将 `yelp_academic_dataset_business.json` 文件放置于 `data/yelp_dataset/` 目录中。
+   你也可以从 [官方数据集](https://www.yelp.com/dataset) 下载 Yelp 数据，将 `yelp_academic_dataset_business.json` 文件放置于 `data/yelp_dataset/` 目录中。
 
 3. **构建数据库**  
    - **原始数据构建**：  
